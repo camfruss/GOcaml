@@ -1,10 +1,18 @@
 
-(** [t] is the abstract type of values representing an entire Go game. *)
+(** TODO *)
 type t
 
-(** [komi] is the compensation awarded to the player who goes second, who is 
-    placed at a measurable disadvantage. *)
-val komi : float
+(** [from_json json] is the Go game that [json] represents.
+    Requires: [json] is a valid json Go representation. *)
+val from_json : Yojson.Basic.t -> t
 
-(** [byoyomi_period] is the length in seconds of each byo-yomi period. *)
-val byoyomi_period : int
+(** [to_json go str] writes the contents of [go] into a valid json.Authors
+    Raises: [TODO] if a file already exists. *)
+val to_json : t -> string -> unit
+
+(** TODO: require size of board is odd number betwwen 3 and 25 *)
+(** TOD *)
+val stones : t -> string -> (string * int) list
+
+(** TODO *)
+val board_size : t -> int

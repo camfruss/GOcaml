@@ -1,3 +1,3 @@
-true: package(ounit2), package(yojson)
+true: package(core), package(ounit2), package(yojson)
 "src": include
 "tests": include

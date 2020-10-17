@@ -1,0 +1,8 @@
+# ocamlbuild targets
+_build/
+
+.DS_Store
+
+*.byte
+*.cmi
+*.cmo

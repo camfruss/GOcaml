@@ -1,0 +1,6 @@
+B _build/src
+B _build/tests
+
+PKG core
+PKG ounit2
+PKG yojson

@@ -26,7 +26,7 @@
       }
     ]
   },
-  "setup" : {
+  "config" : {
     "byoyomi_period": 60,
     "komi" : 6.5,
     "turn" : "White"

@@ -1,10 +1,6 @@
 
-(** [score go] is the current score of the game using the territory scoring. *)
-val score : Go.t -> float
+(** [combine op t1 t2] combines the elements of each tuple according to [op]. *)
+val combine : ('a -> 'b -> 'c) -> 'a * 'a -> 'b * 'b -> 'c * 'c
 
-(** [liberties go str] is the number of liberties in the group at input [str]. 
-    *)
-val liberties : Go.t -> string -> int
-
-(** [ko go str] is whether an input [str] would violate ko. *)
-val ko : Go.t -> string -> bool
+(** TODO *)
+val string_of_string_list : string list -> string

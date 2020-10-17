@@ -1,17 +1,10 @@
 
+let combine op (u1,u2) (v1,v2) =
+  (op u1 v1, op u2 v2)
 
-let score go =
-  failwith "unimplemented"
-  (* Use flood fill algorithm *)
-
-let liberties go s =
-  failwith "unimplemented"
-
-(** [n_stones] is the list containing the index of the move where [n] stones 
-    were in play. *)
-let n_stones game n =
-    failwith "unimplemented"
-
-let ko go s =
-  failwith "unimplemented"
-  
+let string_of_string_list s =
+  let rec str acc = function
+    | [] -> acc
+    | h :: [] -> acc ^ ", " ^ h
+    | h :: t -> str (acc ^ ", " ^ h) t
+  in "[" ^ (str "" s) ^ "]"  
