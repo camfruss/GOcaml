@@ -1,8 +1,9 @@
-open Core.Out_channel
 open Util
 open Yojson.Basic.Util
 
-(** TODO *)
+type stone = Black | White
+
+(** [player] is the type representing a single player in a go game. *)
 type player = {
   id : string;
   prisoners : string list;
@@ -11,13 +12,13 @@ type player = {
   game_time : int;
 }
 
-(** TODO *)
+(** [players] is the type representing a set of 2 players in a go game. *)
 type players = {
   p1 : player;
   p2 : player;
 }
 
-(** TODO *)
+(** [to_player json] is the player record associated by the valid json.  *)
 let to_player json = 
   let stone = 
     if json |> member "stone" |> to_string = "b" then 'b' else 'w' in
@@ -33,22 +34,28 @@ let to_player json =
     stone = stone;
   }
 
-(** TODO *)
+(** [board] is the type presenting a single go board. *)
 type board = {
+  (** [size] is the nxn dimensions of a go board. *)
   size : int;
-  white : (string * int) list;
-  black : (string * int) list
+  (** [white] and [black] represent the column, row, and move number of each 
+      stone, respectively. The column number is the index of the character of 
+      the column in the alphabet. 
+      Example:
+      - 1, 1, 1 would be the first stone of some color placed at B1 .*)
+  white : (int * int * int) list;
+  black : (int * int * int) list
 }
 
-(** TODO *)
+(** [to_board json] is the board record represented by the valid json. *)
 let to_board json =
   let rec player_stones acc = function
     | [] -> acc
     | h :: t ->
-      let col = h |> member "col" |> to_string in
-      let row = h |> member "row" |> to_string in
-      let move = h |> member "row" |> to_int in
-      player_stones ((col ^ row, move) :: acc) t
+      let col = h |> member "col" |> to_int in
+      let row = h |> member "row" |> to_int in
+      let move = h |> member "move" |> to_int in
+      player_stones ((col,row,move) :: acc) t
   in
   {
     size = json |> member "size" |> to_int;
@@ -66,6 +73,7 @@ type config = {
   turn : char;
 }
 
+(** [to_config j] is the [config] record corresponding to [json] *)
 let to_config json = 
   let turn = 
     if json |> member "turn" |> to_string = "b" then 'b' else 'w' 
@@ -76,7 +84,6 @@ let to_config json =
     turn = turn;
   }
 
-(** TODO *)
 type t = {
   players : players;
   board : board;
@@ -98,7 +105,8 @@ let from_json json =
     config = config;
   }
 
-(** TODO *)
+(** [from_player p name] is the json representation of a [player] record with 
+    key [name]. *)
 let from_player p name =
   Printf.sprintf {|
     "%s" : {
@@ -110,7 +118,7 @@ let from_player p name =
     }
   |} name p.byoyomi p.game_time p.id (string_of_string_list p.prisoners) p.stone
 
-(** *)
+(** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
   Printf.sprintf {|
     "players" : {
@@ -119,7 +127,8 @@ let from_players ps =
     }
   |} (from_player ps.p1 "p1") (from_player ps.p2 "p2")
 
-(** TODO *)
+(** [from_move m] is the json representation of a single move as specified by 
+    the column, row, and move number of a given stone. *)
 let from_move col row mov = 
   Printf.sprintf {|
     {      
@@ -129,7 +138,7 @@ let from_move col row mov =
     }
   |} col row mov
 
-(** TODO *)
+(** [from_board b] is the json representation of a [board] record [b]. *)
 let from_board b = 
   Printf.sprintf {|
     "board" : {
@@ -139,7 +148,7 @@ let from_board b =
     }
   |} b.size
 
-(** TODO *)
+(** [from_config c] is the json representation of a [config] record [c]. *)
 let from_config c = 
   Printf.sprintf {|
     "config" : {
@@ -150,18 +159,27 @@ let from_config c =
   |} c.byoyomi_period c.komi c.turn
 
 let to_json t out_file =
-  let json_file = 
+  let content = 
     Printf.sprintf {|
       %s,
       %s,
       %s
     |} (from_players t.players) (from_board t.board) (from_config t.config)
-  in write_all out_file ~data:json_file
+  in 
+  let oc = open_out out_file in
+  Printf.fprintf oc "%s\n" content;
+  close_out oc
 
-(** TODO *)
+(** [positions lst] is the first and second value in each element of [lst]. 
+    Given a stone color of a board, this is the column and row of each stone. *)
+let positions lst = 
+  let rec pos_tr acc = function
+    | (r, c, m) :: t -> pos_tr ((r, c) :: acc) t
+    | [] -> acc
+  in pos_tr [] lst
+
 let stones t color =
-  if color = "white" then t.board.white else t.board.black
+  if color = White then positions t.board.white else positions t.board.black
 
-(** TODO *)
 let board_size t = 
   t.board.size

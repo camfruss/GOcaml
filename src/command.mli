@@ -17,7 +17,7 @@ exception KoException
     - Save the current game to the file specified *)
 type command = 
   | Pass
-  | Play of string * int
+  | Play of string
   | Forfeit
   | Save of string
 

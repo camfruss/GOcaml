@@ -5,14 +5,14 @@
       "game_time" : 3600,
       "id" : "Player One",
       "prisoners" : [],
-      "stone" : "White"
+      "stone" : "w"
     },
     "p2" : {
       "byoyomi" : 5,
       "game_time" : 3600,
       "id" : "Player Two",
       "prisoners" : [],
-      "stone" : "Black"
+      "stone" : "b"
     }
   },
   "board" : {
@@ -23,6 +23,6 @@
   "config" : {
     "byoyomi_period": 60,
     "komi" : 6.5,
-    "turn" : "Black"
+    "turn" : "b"
   }
 }

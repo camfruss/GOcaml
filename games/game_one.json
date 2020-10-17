@@ -20,7 +20,7 @@
     "white" : [],
     "black" : [
       {
-        "col" : "A",
+        "col" : 1,
         "row" : 1,
         "move" : 1
       }

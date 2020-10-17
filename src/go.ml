@@ -3,64 +3,51 @@ open Util
 
 let adjacent = [(1, 0); (0, 1); (-1, 0); (0, -1)]
 
-(** [istone_pos pos] is the integer position of [pos] TODO
-    Requires: [str] is a single capitalized alphabetic character followed by 
-    integer in the interval [0,size). *)
-let istone_pos pos =
-  let col = Char.code (String.get pos 0) - 65 in
-  let row = int_of_string (Str.string_after pos 1) 
-  in (col, row)
-
-(** [sstone_pos] is the string representation of [pos] *)
-let sstone_pos (c,r) =
-  let col = Char.chr (c + 65) |> Char.escaped in
-  let row = string_of_int r
-  in col ^ row
-
 (** [in_bounds g c r] is whether the stone at column [c] and row [r] is within 
     the bounds of the board. *)
-let in_bounds game (c, r) = 
+let in_bounds game (col,row) = 
   let max_size = board_size game in
-  c > 0 && c < max_size 
+  col > 0 && col < max_size 
   &&
-  r > 0 && r < max_size
+  row > 0 && row < max_size
 
 let score game =
   failwith "unimplemented"
 
-(** [is_empty] is whether there is no stone current at position [pos]. *)
+(** [is_empty game pos] is whether there is no stone current at position [pos]
+    on the board in [game]. *)
 let is_empty game pos = 
-  not (List.mem_assoc pos (stones game "black") 
-    || List.mem_assoc pos (stones game "white"))
+  not (List.mem pos (stones game Black) 
+    || List.mem pos (stones game White))
 
-(** [connected go pos] is the position of all stones of the same color as [pos] 
-    connected to [pos]. *)
-let connected game spos =
-  let bstones = stones game "black" in
-  let stones = 
-    if List.mem_assoc spos bstones then bstones else (stones game "white") in 
-  (** TODO *)
-  let acc = ref [] in
-  let find_same_adj spos =
-    let ipos = istone_pos spos 
+(** [connected game pos] is the position of all stones of the same color as 
+    the stone at [pos] that are adjacently-connected to [pos]. *)
+let connected game pos =
+  let stones =
+    if List.mem pos (stones game Black) then stones game Black 
+    else (stones game White) in 
+  let stack = ref [] in
+  let visited = ref [] in
+  (** [find_same_adj pos] finds all stones of the same color as the one at [pos]
+      that have not been visited or currently in [stack], and adds (by mutating)
+      these new stones to the [stack]. *)
+  let find_same_adj pos =
+    let boundary = 
+      List.map (fun a -> combine (+) pos a) adjacent |> 
+      List.filter (fun spos -> 
+        List.mem pos stones 
+        && 
+        not (List.mem pos !visited)
+        &&
+        not (List.mem pos !stack)) 
     in
-    List.map (fun a -> combine (+) ipos a) adjacent |> 
-    List.map (fun ipos -> sstone_pos ipos) |>
-    List.filter (fun spos -> List.mem_assoc spos stones && not (List.mem spos !acc))
+    stack := !stack @ boundary
   in
   (** TODO *)
-  let rec connected_r spos = 
-    acc := !acc @ (find_same_adj spos); (* TODO: does not recurse *)
-  in connected_r spos; !acc
+  let rec connected_r pos = 
+    visited := !visited @ (find_same_adj pos); (* TODO: does not recurse *)
+  in connected_r pos; !acc
   (* Get coordinate, check adjacent stones, make sure on recursive call not going back to original*)
-
-
-(*let adj_c = List.map (fun adj -> combine ( + ) adj c) adjacent in
-    List.map (fun cr -> if List.mem (_, sstone_pos cr) op_stones then 0 else
-    if List.mem (_, sstone_pos cr) your_stones then lib_r cr else 1) (adj_c)
-      let coord = istone_pos pos in
-  
-    *)
 
 let liberties game pos =
   let all_liberties = 
@@ -72,5 +59,5 @@ let liberties game pos =
 let n_stones game n =
   failwith "unimplemented"
 
-let ko go str = 
+let ko go (col,row) = 
   failwith "unimplemented"
