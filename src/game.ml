@@ -6,7 +6,7 @@ type stone = Black | White
 (** [player] is the type representing a single player in a go game. *)
 type player = {
   id : string;
-  prisoners : string list;
+  prisoners : int list;
   stone : char;
   byoyomi : int;
   game_time : int;
@@ -18,14 +18,14 @@ type players = {
   p2 : player;
 }
 
-(** [to_player json] is the player record associated by the valid json.  *)
+(** [to_player json] is the player record represented by a valid player.  *)
 let to_player json = 
   let stone = 
     if json |> member "stone" |> to_string = "b" then 'b' else 'w' in
   let prisoners = json 
     |> member "prisoners" 
     |> to_list 
-    |> List.map (fun elt -> elt |> to_string) in
+    |> List.map (fun elt -> elt |> to_int) in
   {
     byoyomi = json |> member "byoyomi" |> to_int;
     game_time = json |> member "game_time" |> to_int;
@@ -38,24 +38,25 @@ let to_player json =
 type board = {
   (** [size] is the nxn dimensions of a go board. *)
   size : int;
-  (** [white] and [black] represent the column, row, and move number of each 
-      stone, respectively. The column number is the index of the character of 
-      the column in the alphabet. 
+  (** [white] and [black] represent the column, row, and cur_stones in play 
+      after the move, respectively. The column number is the index of the 
+      character of the column in the alphabet. 
       Example:
-      - 1, 1, 1 would be the first stone of some color placed at B1 .*)
+      - 1, 1, 1 would be the stone placed B1, which becomes the only stone on 
+        the board. *)
   white : (int * int * int) list;
   black : (int * int * int) list
 }
 
-(** [to_board json] is the board record represented by the valid json. *)
+(** [to_board json] is the board record represented by the valid json board. *)
 let to_board json =
   let rec player_stones acc = function
     | [] -> acc
     | h :: t ->
       let col = h |> member "col" |> to_int in
       let row = h |> member "row" |> to_int in
-      let move = h |> member "move" |> to_int in
-      player_stones ((col,row,move) :: acc) t
+      let cur_stones = h |> member "cur_stones" |> to_int in
+      player_stones ((col,row,cur_stones) :: acc) t
   in
   {
     size = json |> member "size" |> to_int;
@@ -73,7 +74,7 @@ type config = {
   turn : char;
 }
 
-(** [to_config j] is the [config] record corresponding to [json] *)
+(** [to_config j] is the [config] record corresponding to the config [json]. *)
 let to_config json = 
   let turn = 
     if json |> member "turn" |> to_string = "b" then 'b' else 'w' 
@@ -116,7 +117,7 @@ let from_player p name =
       "prisoners" : %s,
       "stone" : "%c"
     }
-  |} name p.byoyomi p.game_time p.id (string_of_string_list p.prisoners) p.stone
+  |} name p.byoyomi p.game_time p.id (string_of_int_list p.prisoners) p.stone
 
 (** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
@@ -134,7 +135,7 @@ let from_move col row mov =
     {      
       "col" : %d,
       "row" : %d,
-      "move" : %d
+      "cur_stones" : %d
     }
   |} col row mov
 
@@ -171,7 +172,8 @@ let to_json t out_file =
   close_out oc
 
 (** [positions lst] is the first and second value in each element of [lst]. 
-    Given a stone color of a board, this is the column and row of each stone. *)
+    Given a stone color of a board, this is the column and row of each stone of 
+    that color. *)
 let positions lst = 
   let rec pos_tr acc = function
     | (r, c, m) :: t -> pos_tr ((r, c) :: acc) t

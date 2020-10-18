@@ -4,7 +4,7 @@
       "byoyomi" : 5,
       "game_time" : 3600,
       "id" : "Player One",
-      "prisoners" : [],
+      "prisoners" : [5],
       "stone" : "White"
     },
     "p2" : {
@@ -17,12 +17,18 @@
   },
   "board" : {
     "size" : 19, 
-    "white" : [],
+    "white" : [
+      {
+        "col" : 15,
+        "row" : 3,
+        "cur_stones" : 1
+      }
+    ],
     "black" : [
       {
-        "col" : 1,
-        "row" : 1,
-        "move" : 1
+        "col" : 3,
+        "row" : 2,
+        "cur_stones" : 1
       }
     ]
   },
