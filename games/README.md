@@ -2,7 +2,7 @@
 
 Here we document what constitues a valid JSON Go game file.
 
-## Gernal Format
+## General Format
 
 There are three required properties in the first level of the JSON file: `players`, `board`, and `config`:
 ```

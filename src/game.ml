@@ -51,7 +51,7 @@ type board = {
 (** [to_board json] is the board record represented by the valid json board. *)
 let to_board json =
   let rec player_stones acc = function
-    | [] -> acc
+    | [] -> List.rev acc
     | h :: t ->
       let col = h |> member "col" |> to_int in
       let row = h |> member "row" |> to_int in
@@ -61,7 +61,7 @@ let to_board json =
   {
     size = json |> member "size" |> to_int;
     white = json |> member "white" |> to_list |> player_stones [];
-    black = json |> member "white" |> to_list |> player_stones [];
+    black = json |> member "black" |> to_list |> player_stones [];
   }
 
 type config = {

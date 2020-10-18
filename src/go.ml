@@ -18,7 +18,12 @@ let score game =
     on the board in [game]. *)
 let is_empty game pos = 
   not (List.mem pos (stones game Black) 
-    || List.mem pos (stones game White))
+     || List.mem pos (stones game White))
+
+(** [c_adjacent pos] is the coordinates of all the positions adjacent to 
+    [pos]. *)
+let c_adjacent pos =
+  List.map (fun a -> combine (+) pos a) adjacent
 
 (** [group game pos] is the group of stones of the same color as the stone at 
     [pos] that are adjacently-connected to [pos]. *)
@@ -33,7 +38,7 @@ let group game pos =
       these new stones to the [stack]. *)
   let find_same_adj pos =
     let boundary = 
-      List.map (fun a -> combine (+) pos a) adjacent |> 
+      c_adjacent pos |> 
       List.filter (fun pos -> 
         List.mem pos stones 
         && 
@@ -53,8 +58,13 @@ let group game pos =
   in connected_r pos; !visited
 
 let liberties game pos =
+  let connected = group game pos in
+  let all_adjacent = 
+    List.map (fun s -> c_adjacent s) connected 
+    |> List.flatten 
+    |> List.sort_uniq compare in
   let all_liberties = 
-    List.map (fun c -> if is_empty game c then 1 else 0) (group game pos) 
+    List.map (fun c -> if is_empty game c then 1 else 0) all_adjacent 
   in List.fold_left (fun acc v -> acc + v) 0 all_liberties
 
 (** [n_stones] is the list containing the index of the move where [n] stones 
