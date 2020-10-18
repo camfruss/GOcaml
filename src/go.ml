@@ -18,40 +18,53 @@ let score game =
     on the board in [game]. *)
 let is_empty game pos = 
   not (List.mem pos (stones game Black) 
-    || List.mem pos (stones game White))
+     || List.mem pos (stones game White))
 
-(** [connected game pos] is the position of all stones of the same color as 
-    the stone at [pos] that are adjacently-connected to [pos]. *)
-let connected game pos =
+(** [c_adjacent pos] is the coordinates of all the positions adjacent to 
+    [pos]. *)
+let c_adjacent pos =
+  List.map (fun a -> combine (+) pos a) adjacent
+
+(** [group game pos] is the group of stones of the same color as the stone at 
+    [pos] that are adjacently-connected to [pos]. *)
+let group game pos =
   let stones =
     if List.mem pos (stones game Black) then stones game Black 
     else (stones game White) in 
-  let stack = ref [] in
+  let stack = ref [pos] in
   let visited = ref [] in
   (** [find_same_adj pos] finds all stones of the same color as the one at [pos]
       that have not been visited or currently in [stack], and adds (by mutating)
       these new stones to the [stack]. *)
   let find_same_adj pos =
     let boundary = 
-      List.map (fun a -> combine (+) pos a) adjacent |> 
-      List.filter (fun spos -> 
+      c_adjacent pos |> 
+      List.filter (fun pos -> 
         List.mem pos stones 
         && 
         not (List.mem pos !visited)
         &&
         not (List.mem pos !stack)) 
     in
-    stack := !stack @ boundary
+    visited := pos :: !visited;
+    stack := !stack @ boundary; ()
   in
-  (** TODO *)
-  let rec connected_r pos = 
-    visited := !visited @ (find_same_adj pos); (* TODO: does not recurse *)
-  in connected_r pos; !acc
-  (* Get coordinate, check adjacent stones, make sure on recursive call not going back to original*)
+  (** [connected_r pos] is the group of stones connected to [pos]. *)
+  let rec connected_r pos =
+    while !stack != [] do
+      find_same_adj (List.hd !stack); (* Safe, as stack is not empty. *)
+      stack := List.tl !stack;
+    done
+  in connected_r pos; !visited
 
 let liberties game pos =
+  let connected = group game pos in
+  let all_adjacent = 
+    List.map (fun s -> c_adjacent s) connected 
+    |> List.flatten 
+    |> List.sort_uniq compare in
   let all_liberties = 
-    List.map (fun c -> if is_empty game c then 1 else 0) (connected game pos) 
+    List.map (fun c -> if is_empty game c then 1 else 0) all_adjacent 
   in List.fold_left (fun acc v -> acc + v) 0 all_liberties
 
 (** [n_stones] is the list containing the index of the move where [n] stones 
