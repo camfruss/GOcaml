@@ -18,7 +18,7 @@ let score game =
     on the board in [game]. *)
 let is_empty game pos = 
   not (List.mem pos (stones game Black) 
-     || List.mem pos (stones game White))
+       || List.mem pos (stones game White))
 
 (** [c_adjacent pos] is the coordinates of all the positions adjacent to 
     [pos]. *)
@@ -40,11 +40,11 @@ let group game pos =
     let boundary = 
       c_adjacent pos |> 
       List.filter (fun pos -> 
-        List.mem pos stones 
-        && 
-        not (List.mem pos !visited)
-        &&
-        not (List.mem pos !stack)) 
+          List.mem pos stones 
+          && 
+          not (List.mem pos !visited)
+          &&
+          not (List.mem pos !stack)) 
     in
     visited := pos :: !visited;
     stack := !stack @ boundary; ()
