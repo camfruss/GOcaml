@@ -13,6 +13,7 @@ let load_game file =
 (* All the game files *)
 let standard_19 = load_game "games/standard_19.json"
 let game_one = load_game "games/game_one.json"
+let corner = load_game "games/corner.json"
 
 let command_tests = [
 
@@ -22,13 +23,42 @@ let game_tests = [
   cmp_values "standard board size is 19" 19 (board_size standard_19);
 ]
 
+
 let go_tests = [
-  
+  (**Liberties tests *)
+  (** currently failing tests with stones on the border *)
+  cmp_values "board1 black (0,0) solo, 2 liberties" (**failed *)
+    2 (Go.liberties corner (0,0));
+  cmp_values "board1 black (3,1) solo, 4 liberties" 
+    4 (Go.liberties game_one (3,1));
+  cmp_values "board1 black (2,3) solo, 3 liberties" 
+    3 (Go.liberties game_one (2,3));
+  cmp_values "board1 white (3,8) solo on edge, 3 liberties" (**failed *)
+    3 (Go.liberties game_one (3,8));
+
+  cmp_values "board1 white (1,2) in string" 
+    5 (Go.liberties game_one (1,2));
+  cmp_values "board1 white (2,2) in string, share liberties with (1,2)" 
+    5 (Go.liberties game_one (2,2));
+
+  cmp_values "board1 white (5,3) in str(5,3)(6,2)(6,3)(6,4), 5 lib" 
+    5 (Go.liberties game_one (5,3));
+  cmp_values "board1 white (6,2) in str(5,3)(6,2)(6,3)(6,4), 5 lib" 
+    5 (Go.liberties game_one (6,2));
+  cmp_values "board1 white (6,3) in str(5,3)(6,2)(6,3)(6,4), 5 lib" 
+    5 (Go.liberties game_one (6,3));
+  cmp_values "board1 white (6,4) in str(5,3)(6,2)(6,3)(6,4), 5 lib" 
+    5 (Go.liberties game_one (6,4));
+
+
+
+
 ]
 
 let suite =
   "GOcaml Test Suite"  >::: List.flatten [
     game_tests;
+    go_tests;
   ]
 
 let _ = run_test_tt_main suite

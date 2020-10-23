@@ -1,0 +1,34 @@
+{
+  "players": {
+    "p1": {
+      "byoyomi": 5,
+      "game_time": 3000,
+      "id": "Player One",
+      "prisoners": [],
+      "stone": "w"
+    },
+    "p2": {
+      "byoyomi": 5,
+      "game_time": 3200,
+      "id": "Player Two",
+      "prisoners": [],
+      "stone": "b"
+    }
+  },
+  "board": {
+    "size": 9,
+    "white": [],
+    "black": [
+      {
+        "col": 0,
+        "row": 0,
+        "cur_stones": 1
+      }
+    ]
+  },
+  "config": {
+    "byoyomi_period": 60,
+    "komi": 5.5,
+    "turn": "w"
+  }
+}

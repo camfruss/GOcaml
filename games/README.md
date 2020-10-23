@@ -46,7 +46,7 @@ p# : {
 
 ### Move
 
-A single move is represented by three fields, `col`, `row`, and `cur_stones`. The column and row are the column and row the stone was placed on and the `cur_stones` represents the number of stones on the board after the move is completed. This value allows for an easier detection of ko violations later on in the game. 
+A single move is represented by three fields, `col`, `row`, and `cur_stones`. The column and row are the column and row the stone was placed on. Columns and rows are index zero based with the origin at the top left corner. This value allows for an easier detection of ko violations later on in the game. The `cur_stones` represents the number of stones on the board after the move is completed.
 ```
 {
   "col" : int,
