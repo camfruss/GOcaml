@@ -23,9 +23,9 @@ let to_player json =
   let stone = 
     if json |> member "stone" |> to_string = "b" then 'b' else 'w' in
   let prisoners = json 
-    |> member "prisoners" 
-    |> to_list 
-    |> List.map (fun elt -> elt |> to_int) in
+                  |> member "prisoners" 
+                  |> to_list 
+                  |> List.map (fun elt -> elt |> to_int) in
   {
     byoyomi = json |> member "byoyomi" |> to_int;
     game_time = json |> member "game_time" |> to_int;
@@ -68,7 +68,7 @@ type config = {
   (** [byoyomi_period] is the length in seconds of each byo-yomi period. *)
   byoyomi_period : int;
   (** [komi] is the compensation awarded to the player who goes second, who is 
-    placed at a measurable disadvantage. *)
+      placed at a measurable disadvantage. *)
   komi : float;
   (** [turn] is the player whose turn is currently is. *)
   turn : char;

@@ -11,15 +11,19 @@ exception KoException
 
 (** [command] is a player's move in a game. They have the option to 
     - Pass
-    - Place a stone at a coordinate marked by a character and an integer 
-      between 1 and the board size
+    - Play a stone at a coordinate marked by a character and an integer 
+      between 1 and the board size.
+        Example: 
     - Forfeit
-    - Save the current game to the file specified *)
+    - Save the current game to the file specified 
+    - Quit will quit the game application *)
+
 type command = 
   | Pass
-  | Play of string
+  | Play of string list
   | Forfeit
-  | Save of string
+  | Save of string list
+  | Quit
 
 (** TODO *)
 val parse : string -> command
