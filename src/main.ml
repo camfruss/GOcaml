@@ -8,7 +8,7 @@ let create_game f =
 
 (** [playing] game while command isn't to quit. If command is play, update state. *)
 let rec playing game st  = 
-  st |> State.turn_start_text game |> ANSITerminal.print_string [];
+  st |> State.turn_start_text game
 
   print_endline "\n";
   print_string "> ";
@@ -35,20 +35,13 @@ let rec playing game st  =
     playing game st; 
 ;;
 
-
 let play_game f =
   let game = create_game f in 
-  print_endline "";
-  print_endline "WELCOME TO GO !";
-  print_endline "You currently have two commands:";
-  print_endline "1. Type <play position> (excluding the gang signs) to place a stone at a position";
-  print_endline "2. Type <quit> (excluding gang signs) to quit the game.";
-  print_endline "Now that you know the basics, let's begin!\n";
-
-  playing game (State.init_state game)
+  playing game (init_state game)
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
+
   print_endline "Please enter the name of the game file you wish to load.\n";
   print_string  "> ";
   match read_line () with
@@ -57,3 +50,12 @@ let main () =
 
 (* Execute the game engine. *)
 let () = main ()
+
+
+  {| 
+  |}
+  print_endline "WELCOME TO GO !";
+  print_endline "You currently have two commands:";
+  print_endline "1. Type <play position> (excluding the gang signs) to place a stone at a position";
+  print_endline "2. Type <quit> (excluding gang signs) to quit the game.";
+  print_endline "Now that you know the basics, let's begin!\n";

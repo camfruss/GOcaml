@@ -180,9 +180,9 @@ let positions lst =
     | [] -> acc
   in pos_tr [] lst
 
-let stones t color =
-  if color = White then positions t.board.white 
-  else positions t.board.black
+let stones t = function
+  | White -> positions t.board.white
+  | Black -> positions t.board.black
 
 let board_size t = 
   t.board.size

@@ -15,3 +15,7 @@ val to_json : t -> string -> unit
 
 (** [board_size t] is the nxn dimension of the board in game [t]. *)
 val board_size : t -> int
+
+(** [stones t s] is the col and row of every stone on the board of type 
+    [stone]. *)
+val stones : t -> stone -> (int * int) list

@@ -9,6 +9,10 @@ exception Empty
     twice in a single game. *)
 exception KoException
 
+(** [KoException] is raised when the stones being places exceeds the valid 
+    bounds of the board. *)
+exception GoOutOfBounds
+
 (** [command] is a player's move in a game. They have the option to 
     - Pass
     - Play a stone at a coordinate marked by a character and an integer 
@@ -24,6 +28,11 @@ type command =
   | Save of string
   | Quit
 
+(** [istone_pos pos] is the integer position of [pos].
+    Requires: [pos] is a single capitalized alphabetic character followed by 
+    integer in the interval [1, board_size]. *)
+val istone_pos : string -> (int * int)
+
 (** [parse game str] parses a player's input into a [command]. The verb must be
     all lowercase and the string following the verb is must adhere to the above 
     specifications for [command].
@@ -33,8 +42,3 @@ type command =
     
     Requires: [str] contains alphanumerics and spaces. *)
 val parse : Game.t -> string -> command
-
-(** [istone_pos pos] is the integer position of [pos].
-    Requires: [pos] is a single capitalized alphabetic character followed by 
-    integer in the interval [1, board_size]. *)
-val istone_pos : string -> (int * int)

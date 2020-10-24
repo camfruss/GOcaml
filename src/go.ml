@@ -3,8 +3,6 @@ open Util
 
 let adjacent = [(1, 0); (0, 1); (-1, 0); (0, -1)]
 
-(** [in_bounds g c r] is whether the stone at column [c] and row [r] is within 
-    the bounds of the board. *)
 let in_bounds game (col,row) = 
   let max_size = board_size game in
   col >= 0 && col < max_size 

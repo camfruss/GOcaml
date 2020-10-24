@@ -4,4 +4,3 @@ B _build/tests
 PKG ounit2
 PKG str
 PKG yojson
-PKG ANSITerminal
