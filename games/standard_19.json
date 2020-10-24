@@ -1,28 +1,28 @@
 {
-  "players" : {
-    "p1" : {
-      "byoyomi" : 5,
-      "game_time" : 3600,
-      "id" : "Player One",
-      "prisoners" : [],
-      "stone" : "w"
+  "players": {
+    "p1": {
+      "byoyomi": 5,
+      "game_time": 3600,
+      "id": "Player One",
+      "prisoners": [],
+      "stone": "w"
     },
-    "p2" : {
-      "byoyomi" : 5,
-      "game_time" : 3600,
-      "id" : "Player Two",
-      "prisoners" : [],
-      "stone" : "b"
+    "p2": {
+      "byoyomi": 5,
+      "game_time": 3600,
+      "id": "Player Two",
+      "prisoners": [],
+      "stone": "b"
     }
   },
-  "board" : {
-    "size" : 19, 
-    "white" : [],
-    "black" : []
+  "board": {
+    "size": 19,
+    "white": [],
+    "black": []
   },
-  "config" : {
+  "config": {
     "byoyomi_period": 60,
-    "komi" : 6.5,
-    "turn" : "b"
+    "komi": 6.5,
+    "turn": "b"
   }
 }

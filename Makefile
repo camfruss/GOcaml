@@ -1,9 +1,11 @@
-MODULES=$(addprefix src/, authors command game go graphics player server util)
+MODULES=$(addprefix src/, authors command state main game go graphics player server util)
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
-OCAMLBUILD=ocamlbuild -use-ocamlfind
+MAIN=main.byte
 TEST=test.byte
+OCAMLBUILD=ocamlbuild -use-ocamlfind
+
 
 build:
 	$(OCAMLBUILD) $(OBJECTS)

@@ -7,14 +7,11 @@ exception KoException
 
 type command = 
   | Pass
-  | Play of string list
+  | Play of string
   | Forfeit
-  | Save of string list
+  | Save of string
   | Quit
 
-(** [istone_pos pos] is the integer position of [pos] TODO
-    Requires: [pos] is a single capitalized alphabetic character followed by 
-    integer in the interval [1,board_size]. *)
 let istone_pos pos =
   let col = Char.code (String.get pos 0) - 65 in
   let row = int_of_string (Str.string_after pos 1) - 1
@@ -31,16 +28,38 @@ let validate_phrase str_list =
   match str_list with
   | [] -> raise Empty
   | h::t -> begin
-      if h = "go" && t != [] then Play t
-      else if h = "save" && t != [] then Save t
+      if h = "play" && t != [] then Play (List.hd t)
+      else if h = "save" && t != [] then Save (List.hd t)
       else if h = "pass" && t = [] then Pass
       else if h = "forfeit" && t = [] then Forfeit
       else if h = "quit" && t = [] then Quit
       else raise Deformed
     end
 
-let parse str = 
+(** [too_long lst] returns [lst] if its length isn't greater than. Otherwise
+    it raises Deformed. *)
+let too_long (lst : string list) = 
+  if List.length lst > 2 then raise Deformed else lst
+
+(** [check_size game pos] returns true if the position in within the board.
+    Returns false otherwise. *)
+let check_size game (col,row) =
+  let board_size = Game.board_size game in
+  col >= 0 && col < board_size 
+  &&
+  row >= 0 && row < board_size
+
+(** [validate_play game cmd] makes sure that the stone position of the play 
+    command is within the bounds of the board. *)
+let validate_play game (cmd : command) = 
+  match cmd with 
+  | Play str -> if check_size game (istone_pos str) then cmd else raise Deformed
+  | _ -> cmd
+
+let parse game str = 
   String.split_on_char ' ' str 
   |> List.map String.trim 
-  |> List.filter filter_empty 
+  |> List.filter filter_empty
+  |> too_long 
   |> validate_phrase
+  |> validate_play game 

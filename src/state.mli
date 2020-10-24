@@ -14,15 +14,13 @@ type t
     and they have visited only that room. *)
 val init_state : Game.t -> t
 
+(** [stones t s] is the col and row of every stone on the board of type 
+    [stone]. *)
+val stones : t -> Game.stone -> (int * int) list
 
-(**
-   board.white (move array)
-   board.black (move array)
-   -move array
-
-   players.p#.prisoners (int array)
-*)
-
+(** [is_empty state pos] is whether there is no stone current at position [pos]
+    on the board in [state]. *)
+val is_empty : t -> (int * int) -> bool
 
 
 (** The type representing the result of an attempted Go board update. *)
@@ -36,12 +34,7 @@ type result = Legal of t | Illegal
     Effects: none.  [play] is not permitted to do any printing. *)
 val play : (int * int) -> Game.t -> t -> result
 
+(** [turn_start_text] returns the string of tezt to be displayed at the start
+    of a turn. *)
+val turn_start_text : Game.t -> t -> string
 
-
-(* go northeast
-
-   go exit_name
-
-   exitname -> result
-
-   play A1 *)

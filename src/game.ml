@@ -185,3 +185,9 @@ let stones t color =
 
 let board_size t = 
   t.board.size
+
+let get_p1_stone game =
+  game.players.p1.stone
+
+let get_p2_stone game = 
+  game.players.p2.stone

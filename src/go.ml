@@ -7,18 +7,19 @@ let adjacent = [(1, 0); (0, 1); (-1, 0); (0, -1)]
     the bounds of the board. *)
 let in_bounds game (col,row) = 
   let max_size = board_size game in
-  col > 0 && col < max_size 
+  col >= 0 && col < max_size 
   &&
-  row > 0 && row < max_size
+  row >= 0 && row < max_size
 
 let score game =
   failwith "unimplemented"
 
-(** [is_empty game pos] is whether there is no stone current at position [pos]
-    on the board in [game]. *)
+
 let is_empty game pos = 
-  not (List.mem pos (stones game Black) 
-       || List.mem pos (stones game White))
+  if (in_bounds game pos) then 
+    not (List.mem pos (stones game Black) 
+         || List.mem pos (stones game White))
+  else false
 
 (** [c_adjacent pos] is the coordinates of all the positions adjacent to 
     [pos]. *)
