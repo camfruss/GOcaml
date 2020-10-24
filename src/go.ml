@@ -11,27 +11,27 @@ let in_bounds game (col,row) =
   &&
   row >= 0 && row < max_size
 
-let score game =
-  failwith "unimplemented"
-
-
 let is_empty game pos = 
-  if (in_bounds game pos) then 
+  if in_bounds game pos then 
     not (List.mem pos (stones game Black) 
-         || List.mem pos (stones game White))
+      || List.mem pos (stones game White))
   else false
 
-(** [c_adjacent pos] is the coordinates of all the positions adjacent to 
+(** [c_adjacent pos] are the coordinates of all the positions adjacent to 
     [pos]. *)
 let c_adjacent pos =
   List.map (fun a -> combine (+) pos a) adjacent
 
+(** [pos_stones game pos] is the list of stones in [game] that are the same 
+    color as the stone at [pos]. *)
+let pos_stones game pos = 
+  if List.mem pos (stones game Black) then stones game Black 
+  else (stones game White)
+
 (** [group game pos] is the group of stones of the same color as the stone at 
     [pos] that are adjacently-connected to [pos]. *)
 let group game pos =
-  let stones =
-    if List.mem pos (stones game Black) then stones game Black 
-    else (stones game White) in 
+  let stones = pos_stones game pos in
   let stack = ref [pos] in
   let visited = ref [] in
   (** [find_same_adj pos] finds all stones of the same color as the one at [pos]
@@ -40,7 +40,8 @@ let group game pos =
   let find_same_adj pos =
     let boundary = 
       c_adjacent pos |> 
-      List.filter (fun pos -> 
+      List.filter 
+        (fun pos -> 
           List.mem pos stones 
           && 
           not (List.mem pos !visited)
@@ -53,7 +54,7 @@ let group game pos =
   (** [connected_r pos] is the group of stones connected to [pos]. *)
   let rec connected_r pos =
     while !stack != [] do
-      find_same_adj (List.hd !stack); (* Safe, as stack is not empty. *)
+      find_same_adj (List.hd !stack); (* Note: safe, as stack is not empty. *)
       stack := List.tl !stack;
     done
   in connected_r pos; !visited
@@ -71,6 +72,9 @@ let liberties game pos =
 (** [n_stones] is the list containing the index of the move where [n] stones 
     were in play. *)
 let n_stones game n =
+  failwith "unimplemented"
+
+let score game =
   failwith "unimplemented"
 
 let ko go (col,row) = 

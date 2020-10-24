@@ -23,9 +23,9 @@ let to_player json =
   let stone = 
     if json |> member "stone" |> to_string = "b" then 'b' else 'w' in
   let prisoners = json 
-                  |> member "prisoners" 
-                  |> to_list 
-                  |> List.map (fun elt -> elt |> to_int) in
+    |> member "prisoners" 
+    |> to_list 
+    |> List.map (fun elt -> elt |> to_int) in
   {
     byoyomi = json |> member "byoyomi" |> to_int;
     game_time = json |> member "game_time" |> to_int;
@@ -181,13 +181,8 @@ let positions lst =
   in pos_tr [] lst
 
 let stones t color =
-  if color = White then positions t.board.white else positions t.board.black
+  if color = White then positions t.board.white 
+  else positions t.board.black
 
 let board_size t = 
   t.board.size
-
-let get_p1_stone game =
-  game.players.p1.stone
-
-let get_p2_stone game = 
-  game.players.p2.stone

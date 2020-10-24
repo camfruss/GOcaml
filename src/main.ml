@@ -1,14 +1,12 @@
-open Game
 open Command
+open Game
 open State
 
-(** [create_game] creates an game reading in file f.*)
+(** [create_game f] creates a game from a valid JSON file [f]. *)
 let create_game f = 
-  Yojson.Basic.from_file f |> Game.from_json 
+  Yojson.Basic.from_file f |> from_json 
 
-
-(** [playing] game while command isn't to quit. If command is play, update state
-*)
+(** [playing] game while command isn't to quit. If command is play, update state. *)
 let rec playing game st  = 
   st |> State.turn_start_text game |> ANSITerminal.print_string [];
 
@@ -51,8 +49,6 @@ let play_game f =
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
-  ANSITerminal.(print_string [green]
-                  "\n\nWelcome to the game of Go!\n");
   print_endline "Please enter the name of the game file you wish to load.\n";
   print_string  "> ";
   match read_line () with

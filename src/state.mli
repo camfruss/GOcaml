@@ -1,12 +1,6 @@
-(** 
-   Representation of dynamic Go board state.
 
-   This module represents the state of an Go board as it is being played,
-   including the adventurer's current room, the rooms that have been visited,
-   and functions that cause the state to change.
-*)
-
-(** The abstract type of values representing the game state. *)
+(** The abstract type of values representing the dynamic components of a game 
+    state. *)
 type t 
 
 (** [init_state a] is the initial state of the game when playing adventure [a]. 

@@ -19,15 +19,15 @@ let istone_pos pos =
 
 (** [filter_empty str_element] is the predicate used in List.filter to filter 
     out the empty strings *)
-let filter_empty str_element = String.length(str_element) > 0
+let filter_empty str_element = 
+  String.length(str_element) > 0
 
-(** [validate_phrase str_list] rasies Empty if [str_list] is empty and  
+(** [validate_phrase str_list] rasies [Empty] if [str_list] is empty and  
     Deformed if the str_list doesn't have a correct format. 
     Returns a command otherwise*)
-let validate_phrase str_list =
-  match str_list with
+let validate_phrase = function
   | [] -> raise Empty
-  | h::t -> begin
+  | h :: t -> begin
       if h = "play" && t != [] then Play (List.hd t)
       else if h = "save" && t != [] then Save (List.hd t)
       else if h = "pass" && t = [] then Pass
@@ -38,7 +38,7 @@ let validate_phrase str_list =
 
 (** [too_long lst] returns [lst] if its length isn't greater than. Otherwise
     it raises Deformed. *)
-let too_long (lst : string list) = 
+let too_long lst = 
   if List.length lst > 2 then raise Deformed else lst
 
 (** [check_size game pos] returns true if the position in within the board.
@@ -51,8 +51,7 @@ let check_size game (col,row) =
 
 (** [validate_play game cmd] makes sure that the stone position of the play 
     command is within the bounds of the board. *)
-let validate_play game (cmd : command) = 
-  match cmd with 
+let validate_play game = function
   | Play str -> if check_size game (istone_pos str) then cmd else raise Deformed
   | _ -> cmd
 
