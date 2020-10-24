@@ -1,6 +1,7 @@
 # Go Games
 
 Here we document what constitues a valid JSON Go game file.
+Note, when adding new game files to this directory, please include an image of what the board should look like.
 
 ## General Format
 
@@ -20,15 +21,14 @@ There are three required properties in the first level of the JSON file: `player
 `game_time` is the time remaining on that player's main time clock.
 `id` is the name of the player.
 `prisoners` is a list of all the stones captured, with each integer representing the number of stones on the board after the capture. This helps with detecting ko violations later in the game. 
-`stone` is the player's stone color. This can either be `"b"` or `"w`. The two players must have different stone colors.
+By default, player 1, or `p1`, plays with black stones and starts the game.
 
 ```
 p# : {
   "byoyomi" : int,
   "game_time" : int,
   "id" : string,
-  "prisoners" : int list,
-  "stone" : string
+  "prisoners" : int list
 }
 ```
 

@@ -1,2 +1,2 @@
 
-let hours_worked = -1
+let hours_worked = 7 + 15 + 7

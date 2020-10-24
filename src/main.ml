@@ -1,63 +1,57 @@
-open Game
 open Command
-open State
+open Game
 
-(** [create_game] creates an game reading in file f.*)
-let create_game f = 
-  Yojson.Basic.from_file f |> Game.from_json 
+let welcome_message = 
+  {|
+  ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+  ■           WELCOME TO GOCAML           ■
+  ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+  
+  Supported Moves
+  - play <position>
+    make sure the position is a single character followed by a number between 1
+    and the board size specified in the game file :)
+  - quit
+    for when you are done playing :(
 
+  If you ever want to quit the terminal, press ^D (control D).
+  |}
 
-(** [playing] game while command isn't to quit. If command is play, update state
-*)
-let rec playing game st  = 
-  st |> State.turn_start_text game |> ANSITerminal.print_string [];
+let exit_message = "We hope you enjoyed playing GOCaml and come back soon!"
 
-  print_endline "\n";
+(** [play game] game while command isn't to quit. If command is play, update state. *)
+let rec play game = 
   print_string "> ";
-
-  let user_input = read_line() in 
-
+  let user_input = read_line () in 
   try 
-    match Command.parse game user_input with
-    | Quit -> exit 0
+    match parse game user_input with
+    | Quit -> print_endline exit_message; exit 0
     | Pass -> failwith "unimplemented"
     | Forfeit -> failwith "unimplimented"
-    | Save str1 -> failwith "unimplemented"
-    | Play str2 -> let move_tuple = Command.istone_pos str2 in 
-      match State.play move_tuple game st with 
-      | Illegal -> 
-        print_endline "There is already a stone in that position. Please try somewhere else.\n";
-        playing game st ;
-      | Legal new_st -> playing game new_st 
-
+    | Save s -> to_json game s
+    | Play pos -> play (step game (istone_pos pos) 0)
   with 
-  | Empty -> print_endline "You didn't type anything! Try again!\n";
-    playing game st;
-  | Deformed -> print_endline "That's not a valid command!\n";
-    playing game st; 
-;;
-
-
-let play_game f =
-  let game = create_game f in 
-  print_endline "";
-  print_endline "WELCOME TO GO !";
-  print_endline "You currently have two commands:";
-  print_endline "1. Type <play position> (excluding the gang signs) to place a stone at a position";
-  print_endline "2. Type <quit> (excluding gang signs) to quit the game.";
-  print_endline "Now that you know the basics, let's begin!\n";
-
-  playing game (State.init_state game)
+    | Empty -> 
+      print_endline "You didn't type anything! Try again!"; play game
+    | Deformed -> 
+      print_endline "That's not a valid command!"; play game
+    | GoOutOfBounds ->
+      print_endline "The position"; play game
+    | StoneAlreadyExists ->
+      print_endline "A stone already exists in that location."; play game
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
-  ANSITerminal.(print_string [green]
-                  "\n\nWelcome to the game of Go!\n");
-  print_endline "Please enter the name of the game file you wish to load.\n";
-  print_string  "> ";
-  match read_line () with
-  | exception End_of_file -> ()
-  | file_name -> play_game file_name
+  print_endline welcome_message;
+  print_string "Please enter the name of the game file you wish to load.\n> ";
+  let rec init () = 
+    match read_line () with
+    | exception End_of_file -> ()
+    | f ->
+      try play (Yojson.Basic.from_file f |> from_json) with 
+      | Sys_error _ -> 
+        print_string "Please enter a valid GOCaml file.\n> "; init ()
+  in init ()
 
 (* Execute the game engine. *)
 let () = main ()

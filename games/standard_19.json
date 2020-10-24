@@ -4,15 +4,13 @@
       "byoyomi": 5,
       "game_time": 3600,
       "id": "Player One",
-      "prisoners": [],
-      "stone": "w"
+      "prisoners": []
     },
     "p2": {
       "byoyomi": 5,
       "game_time": 3600,
       "id": "Player Two",
-      "prisoners": [],
-      "stone": "b"
+      "prisoners": []
     }
   },
   "board": {
