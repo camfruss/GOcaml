@@ -7,7 +7,6 @@ type stone = Black | White
 type player = {
   id : string;
   prisoners : int list;
-  stone : char;
   byoyomi : int;
   game_time : int;
 }
@@ -20,8 +19,6 @@ type players = {
 
 (** [to_player json] is the player record represented by a valid player.  *)
 let to_player json = 
-  let stone = 
-    if json |> member "stone" |> to_string = "b" then 'b' else 'w' in
   let prisoners = json 
     |> member "prisoners" 
     |> to_list 
@@ -31,7 +28,6 @@ let to_player json =
     game_time = json |> member "game_time" |> to_int;
     id = json |> member "id" |> to_string;
     prisoners = prisoners;
-    stone = stone;
   }
 
 (** [board] is the type presenting a single go board. *)
@@ -114,10 +110,9 @@ let from_player p name =
       "byoyomi" : %d,
       "game_time" : %d,
       "id" : "%s",
-      "prisoners" : %s,
-      "stone" : "%c"
+      "prisoners" : %s
     }
-  |} name p.byoyomi p.game_time p.id (string_of_int_list p.prisoners) p.stone
+  |} name p.byoyomi p.game_time p.id (string_of_int_list p.prisoners)
 
 (** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
@@ -186,3 +181,13 @@ let stones t = function
 
 let board_size t = 
   t.board.size
+
+(** [deduct_time game time] is the game with the proper time parameters after 
+    the player who just went spent [time] seconds on their move. *)
+let deduct_time game time = 
+  failwith "unimplemented"
+
+let step t move time = 
+  let turn = t.config.turn in
+  let turn' = if turn = 'b' then 'w' else 'b' in
+  {t with config = {t.config with turn = turn'}}

@@ -13,6 +13,10 @@ exception KoException
     bounds of the board. *)
 exception GoOutOfBounds
 
+(** [exception StoneAlreadyExists] is raised when a player attempts to place a 
+    stone on top of an existing stone. *)
+exception StoneAlreadyExists
+
 (** [command] is a player's move in a game. They have the option to 
     - Pass
     - Play a stone at a coordinate marked by a character and an integer 

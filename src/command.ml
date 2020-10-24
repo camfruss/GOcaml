@@ -11,6 +11,8 @@ exception KoException
 
 exception GoOutOfBounds
 
+exception StoneAlreadyExists
+
 type command = 
   | Pass
   | Play of string
@@ -38,13 +40,15 @@ let extract_command = function
   | _ -> rd
 
 (** [valid_placement game cmd] makes sure that the stone position of the play 
-    command is within the bounds of the board. 
+    command is within the bounds of the board and is currently empty. 
     Raises: [GoOutOfBounds] if the desired stone location for the Play command 
     is not within the bounds of the board. *)
 let valid_placement game cmd =
   match cmd with
   | Play str -> 
-    if in_bounds game (istone_pos str) then cmd 
+    let ipos = istone_pos str in
+    if in_bounds game ipos then 
+    if is_empty game ipos then cmd else raise StoneAlreadyExists 
     else raise GoOutOfBounds
   | Pass | Forfeit | Quit | Save _ -> cmd
 
