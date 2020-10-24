@@ -1,30 +1,40 @@
 open Command
 open Game
-open State
 
-(** [create_game f] creates a game from a valid JSON file [f]. *)
-let create_game f = 
-  Yojson.Basic.from_file f |> from_json 
+let welcome_message = 
+  {|
+  ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+  ■           WELCOME TO GOCAML           ■
+  ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+  
+  Supported Moves
+  - play <position>
+    make sure the position is a single character followed by a number between 1
+    and the board size specified in the game file :)
+  - quit
+    for when you are done playing :(
 
-let print_new_turn () = 
-  print_string "\n> "; ()
+  If you ever want to quit the terminal, press ^D (control D).
+  |}
+
+let exit_message = "We hope you enjoyed playing GOCaml and come back soon!"
 
 (** [play game] game while command isn't to quit. If command is play, update state. *)
 let rec play game = 
-  print_new_turn ();
+  print_string "> ";
   let user_input = read_line () in 
   try 
     match parse game user_input with
-    | Quit -> exit 0
+    | Quit -> print_endline exit_message; exit 0
     | Pass -> failwith "unimplemented"
     | Forfeit -> failwith "unimplimented"
     | Save s -> failwith "unimplemented"
     | Play pos -> play (step game (istone_pos pos) 0)
   with 
     | Empty -> 
-      print_endline "You didn't type anything! Try again!\n"; play game
+      print_endline "You didn't type anything! Try again!"; play game
     | Deformed -> 
-      print_endline "That's not a valid command!\n"; play game
+      print_endline "That's not a valid command!"; play game
     | GoOutOfBounds ->
       print_endline "The position"; play game
     | StoneAlreadyExists ->
@@ -32,24 +42,16 @@ let rec play game =
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
-
-  print_endline "Please enter the name of the game file you wish to load.\n";
-  print_string  "> ";
-  match read_line () with
-  | exception End_of_file -> ()
-  | file_name -> play (create_game file_name)
+  print_endline welcome_message;
+  print_string "Please enter the name of the game file you wish to load.\n> ";
+  let rec init () = 
+    match read_line () with
+    | exception End_of_file -> ()
+    | f ->
+      try play (Yojson.Basic.from_file f |> from_json) with 
+      | Sys_error _ -> 
+        print_string "Please enter a valid GOCaml file.\n> "; init ()
+  in init ()
 
 (* Execute the game engine. *)
 let () = main ()
-
-(*
-  {| 
-
-
-  |}
-  print_endline "WELCOME TO GO !";
-  print_endline "You currently have two commands:";
-  print_endline "1. Type <play position> (excluding the gang signs) to place a stone at a position";
-  print_endline "2. Type <quit> (excluding gang signs) to quit the game.";
-  print_endline "Now that you know the basics, let's begin!\n";
-  *)

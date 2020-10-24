@@ -1,13 +1,11 @@
-open Go
 
 exception Deformed
 
 (** [rd] is an alias for [raise Deformed]. *)
-let rd = raise Deformed
+let rd () = 
+  raise Deformed
 
 exception Empty
-
-exception KoException
 
 exception GoOutOfBounds
 
@@ -32,12 +30,12 @@ let extract_command = function
   | h :: [] ->
       if h = "pass" then Pass
       else if h = "forfeit" then Forfeit
-      else if h = "quit" then Quit else rd
+      else if h = "quit" then Quit else rd ()
   | h :: t :: [] ->
       if h = "play" then Play t
-      else if h = "save" then Save t else rd
+      else if h = "save" then Save t else rd ()
   | [] -> raise Empty
-  | _ -> rd
+  | _ -> rd ()
 
 (** [valid_placement game cmd] makes sure that the stone position of the play 
     command is within the bounds of the board and is currently empty. 
@@ -47,8 +45,8 @@ let valid_placement game cmd =
   match cmd with
   | Play str -> 
     let ipos = istone_pos str in
-    if in_bounds game ipos then 
-    if is_empty game ipos then cmd else raise StoneAlreadyExists 
+    if Game.in_bounds game ipos then 
+    if Game.is_empty game ipos then cmd else raise StoneAlreadyExists 
     else raise GoOutOfBounds
   | Pass | Forfeit | Quit | Save _ -> cmd
 
