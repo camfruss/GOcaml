@@ -32,11 +32,6 @@
         "cur_stones": 6
       },
       {
-        "col": 8,
-        "row": 1,
-        "cur_stones": 6
-      },
-      {
         "col": 5,
         "row": 4,
         "cur_stones": 8
@@ -112,11 +107,6 @@
         "col": 0,
         "row": 1,
         "cur_stones": 17
-      },
-      {
-        "col": 5,
-        "row": 4,
-        "cur_stones": 18
       }
     ]
   },

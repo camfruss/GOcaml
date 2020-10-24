@@ -45,7 +45,6 @@ let game_tests = [
   cmp_values_int "board1 white (3,8) solo on edge, 3 liberties" 
     3 (liberties game_one (3,8));
 
-
   cmp_values_int "board1 white (1,2) in string" 
     5 (liberties game_one (1,2));
   cmp_values_int "board1 white (2,2) in string, share liberties with (1,2)" 
@@ -59,9 +58,6 @@ let game_tests = [
     5 (liberties game_one (6,3));
   cmp_values_int "board1 white (6,4) in str(5,3)(6,2)(6,3)(6,4), 5 lib" 
     5 (liberties game_one (6,4));
-
-
-
 
 ]
 

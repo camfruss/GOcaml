@@ -28,7 +28,7 @@ let rec play game =
     | Quit -> print_endline exit_message; exit 0
     | Pass -> failwith "unimplemented"
     | Forfeit -> failwith "unimplimented"
-    | Save s -> failwith "unimplemented"
+    | Save s -> to_json game s
     | Play pos -> play (step game (istone_pos pos) 0)
   with 
     | Empty -> 

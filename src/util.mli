@@ -3,9 +3,9 @@
     [op]. *)
 val combine_t : ('a -> 'b -> 'c) -> 'a * 'a -> 'b * 'b -> 'c * 'c
 
-(** [string_of_int_list lst] concatenates all the ints in [lst] to a single 
-    string. *)
-val string_of_int_list : int list -> string
+(** [string_of_list cast lst] concatenates all the elements in [lst] to a single 
+    string, with each element cast to a string according to [cast]. *)
+val string_of_list : ('a -> string) -> 'a list -> string
 
 (** [max_triple3 lst] finds the largest third element of a triple in [lst]. *)
 val max_triple3 : (int * int * int) list -> int

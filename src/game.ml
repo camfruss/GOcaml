@@ -118,7 +118,7 @@ let from_player p name =
       "id" : "%s",
       "prisoners" : %s
     }
-  |} name p.byoyomi p.game_time p.id (string_of_int_list p.prisoners)
+  |} name p.byoyomi p.game_time p.id (string_of_list string_of_int p.prisoners)
 
 (** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
@@ -142,30 +142,36 @@ let from_move col row mov =
 
 (** [from_board b] is the json representation of a [board] record [b]. *)
 let from_board b = 
+  let moves lst = 
+    List.map (fun (c,r,m) -> from_move c r m) lst 
+    |> string_of_list (fun id -> id)
+  in
   Printf.sprintf {|
     "board" : {
       "size" : %d,
-      "white" : [],
-      "black" : []
+      "white" : %s,
+      "black" : %s
     }
-  |} b.size
+  |} b.size (moves b.white) (moves b.black)
 
 (** [from_config c] is the json representation of a [config] record [c]. *)
 let from_config c = 
-  Printf.sprintf {|
+  Printf.sprintf {|  
     "config" : {
       "byoyomi_period" : %d,
       "komi" : %f,
-      "turn" : %c
+      "turn" : "%c"
     }
   |} c.byoyomi_period c.komi c.turn
 
 let to_json t out_file =
   let content = 
     Printf.sprintf {|
+      {
       %s,
       %s,
       %s
+      }
     |} (from_players t.players) (from_board t.board) (from_config t.config)
   in 
   let oc = open_out out_file in
