@@ -111,34 +111,32 @@ let from_json json =
 (** [from_player p name] is the json representation of a [player] record with 
     key [name]. *)
 let from_player p name =
-  Printf.sprintf {|
-    "%s" : {
-      "byoyomi" : %d,
-      "game_time" : %d,
-      "id" : "%s",
-      "prisoners" : %s
-    }
-  |} name p.byoyomi p.game_time p.id (string_of_list string_of_int p.prisoners)
+  Printf.sprintf 
+    {|"%s" : {
+        "byoyomi" : %d,
+        "game_time" : %d,
+        "id" : "%s",
+        "prisoners" : %s
+    }|} name p.byoyomi p.game_time p.id 
+       (string_of_list string_of_int p.prisoners)
 
 (** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
-  Printf.sprintf {|
-    "players" : {
+  Printf.sprintf 
+    {|"players" : {
       %s,
       %s
-    }
-  |} (from_player ps.p1 "p1") (from_player ps.p2 "p2")
+    }|} (from_player ps.p1 "p1") (from_player ps.p2 "p2")
 
 (** [from_move m] is the json representation of a single move as specified by 
     the column, row, and move number of a given stone. *)
 let from_move col row mov = 
-  Printf.sprintf {|
-    {      
+  Printf.sprintf 
+    {|{      
       "col" : %d,
       "row" : %d,
       "cur_stones" : %d
-    }
-  |} col row mov
+    }|} col row mov
 
 (** [from_board b] is the json representation of a [board] record [b]. *)
 let from_board b = 
@@ -146,33 +144,30 @@ let from_board b =
     List.map (fun (c,r,m) -> from_move c r m) lst 
     |> string_of_list (fun id -> id)
   in
-  Printf.sprintf {|
-    "board" : {
-      "size" : %d,
-      "white" : %s,
-      "black" : %s
-    }
-  |} b.size (moves b.white) (moves b.black)
+  Printf.sprintf 
+    {|"board" : {
+        "size" : %d,
+        "white" : %s,
+        "black" : %s
+    }|} b.size (moves b.white) (moves b.black)
 
 (** [from_config c] is the json representation of a [config] record [c]. *)
 let from_config c = 
-  Printf.sprintf {|  
-    "config" : {
-      "byoyomi_period" : %d,
-      "komi" : %f,
-      "turn" : "%c"
-    }
-  |} c.byoyomi_period c.komi c.turn
+  Printf.sprintf 
+    {|"config" : {
+        "byoyomi_period" : %d,
+        "komi" : %f,
+        "turn" : "%c"
+    }|} c.byoyomi_period c.komi c.turn
 
 let to_json t out_file =
   let content = 
-    Printf.sprintf {|
-      {
-      %s,
-      %s,
-      %s
-      }
-    |} (from_players t.players) (from_board t.board) (from_config t.config)
+    Printf.sprintf 
+      {|{ 
+        %s,
+        %s,
+        %s
+      }|} (from_players t.players) (from_board t.board) (from_config t.config)
   in 
   let oc = open_out out_file in
   Printf.fprintf oc "%s\n" content;

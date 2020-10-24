@@ -1,23 +1,27 @@
-MODULES=$(addprefix src/, authors command main game graphics server util)
+MODULES=$(addprefix src/, authors command main game gui server util)
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 MAIN=main.byte
 TEST=test.byte
+GUI=gui.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
 build:
 	$(OCAMLBUILD) $(OBJECTS)
 
-test:
-	$(OCAMLBUILD) -tag 'debug' ./$(TEST) && ./$(TEST)
+clean:
+	ocamlbuild -clean
+	rm -rf gocaml.zip
 
 gocaml:
 	$(OCAMLBUILD) ./$(MAIN) && ./$(MAIN)
 
-zip:
-	zip gocaml.zip ./**/*.ml* ./**/*.json _tags Makefile ./**/*.md ./.merlin
+gui:
+	$(OCAMLBUILD) ./$(GUI) && ./$(GUI)
 
-clean:
-	ocamlbuild -clean
-	rm -rf gocaml.zip
+test:
+	$(OCAMLBUILD) -tag 'debug' ./$(TEST) && ./$(TEST)
+
+zip:
+	zip gocaml.zip ./**/*.ml* ./**/*.json _tags Makefile ./**/*.md ./*.md ./.merlin

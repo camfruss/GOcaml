@@ -28,15 +28,20 @@ let rec play game =
     | Quit -> print_endline exit_message; exit 0
     | Pass -> failwith "unimplemented"
     | Forfeit -> failwith "unimplimented"
-    | Save s -> to_json game s
     | Play pos -> play (step game (istone_pos pos) 0)
+    | Save s -> begin
+      let exists = Sys.file_exists s in 
+      if not exists then to_json game s; 
+      print_endline "A file with this name already exists."; 
+      print_endline "Please choose a different name."; play game
+    end
   with 
     | Empty -> 
       print_endline "You didn't type anything! Try again!"; play game
     | Deformed -> 
       print_endline "That's not a valid command!"; play game
     | GoOutOfBounds ->
-      print_endline "The position"; play game
+      print_endline "The position is out of the game bounds"; play game
     | StoneAlreadyExists ->
       print_endline "A stone already exists in that location."; play game
 

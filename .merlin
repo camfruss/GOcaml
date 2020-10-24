@@ -1,6 +1,7 @@
 B _build/src
 B _build/tests
 
+PKG graphics
 PKG ounit2
 PKG str
 PKG yojson
