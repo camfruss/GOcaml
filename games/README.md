@@ -2,6 +2,7 @@
 
 Here we document what constitues a valid JSON Go game file.
 Note, when adding new game files to this directory, please include an image of what the board should look like.
+While the formatting for saved games is a little off, `Shift` + `Option` + `F` on Mac or `Shift` + `Alt` + `F` on Windows will autoformat the file.
 
 ## General Format
 
