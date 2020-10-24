@@ -15,3 +15,10 @@ test:
 
 play:
 	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
+
+zip:
+	zip gocaml.zip ./**/*.ml* ./**/*.json _tags Makefile ./**/*.md
+
+clean:
+	ocamlbuild -clean
+	rm -rf gocaml.zip
