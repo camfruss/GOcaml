@@ -307,7 +307,9 @@ let step t move time =
     board = board';
     config = config'
   }
-  
+
+(** [full_board t] creates an nxn matrix consisting of dots to represent an 
+    empty Go board of size n. *)
 let full_board t = 
   let dim = t.board.size in 
   let grid = Array.make_matrix dim dim "⋅" in
@@ -324,5 +326,4 @@ let string_of_string_string_array arr =
   String.concat "\n" lst
 
 let string_of_board t =
-  let board = full_board t in
-  Printf.printf "%s" (string_of_string_string_array board)
+  string_of_string_string_array (full_board t)
