@@ -55,3 +55,6 @@ val names : t -> (string * string)
 (** [step t move time] is the new game after the current player places a stone 
     on [move] and spends [time] seconds doing so. *)
 val step : t -> (int * int) -> int -> t
+
+(** [string_of_board t] is the string representation of a board. *)
+val string_of_board : t -> unit

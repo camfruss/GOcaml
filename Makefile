@@ -24,4 +24,4 @@ test:
 	$(OCAMLBUILD) -tag 'debug' ./$(TEST) && ./$(TEST)
 
 zip:
-	zip gocaml.zip ./games/* ./src/* ./tests/* _tags Makefile ./*.md ./.merlin
+	zip gocaml.zip ./games/* ./src/* ./tests/* ./tests/supporting/* _tags Makefile ./*.md ./.merlin

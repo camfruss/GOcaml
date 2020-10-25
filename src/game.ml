@@ -308,3 +308,21 @@ let step t move time =
     config = config'
   }
   
+let full_board t = 
+  let dim = t.board.size in 
+  let grid = Array.make_matrix dim dim "⋅" in
+  let rec add_stones rep = function 
+    | (c, r, _) :: t -> grid.(r).(c) <- rep; add_stones rep t
+    | [] -> ()
+  in add_stones "W" t.board.white; add_stones "B" t.board.black; grid
+
+let string_of_string_array arr =  
+  String.concat " " (Array.to_list arr)
+
+let string_of_string_string_array arr =
+  let lst = Array.map string_of_string_array arr |> Array.to_list in
+  String.concat "\n" lst
+
+let string_of_board t =
+  let board = full_board t in
+  Printf.printf "%s" (string_of_string_string_array board)
