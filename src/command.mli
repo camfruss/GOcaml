@@ -5,7 +5,7 @@ exception Deformed
 (** [Empty] is raised when the players input is empty. *)
 exception Empty
 
-(** [KoException] is raised when the stones being places exceeds the valid 
+(** [GoOutOfBounds] is raised when the stones being places exceeds the valid 
     bounds of the board. *)
 exception GoOutOfBounds
 
@@ -37,13 +37,13 @@ val istone_pos : string -> (int * int)
 (** [parse game str] parses a player's input into a [command]. The verb must be
     all lowercase and the string following the verb is must adhere to the above 
     specifications for [command].
-    
+
     Raises: [Deformed] if the command is not in a valid format. 
     Raises: [Empty] if [str] does not contain alphanumeric characters. 
     Raises: [StoneAlreadyExists] if the stone placement is on top of an 
       existing stone.
     Raises: [GoOutOfBounds] if the stone placement exceeds the bounds of the 
       board.
-    
+
     Requires: [str] contains alphanumerics and spaces. *)
 val parse : Game.t -> string -> command
