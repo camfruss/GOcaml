@@ -2,11 +2,19 @@
 
 There are many ways to set up a working environment to run this project. As of right now, we only need one additional package, Graphics. 
 
+If you don't have brew, install it from here: https://brew.sh
+
+Next, install XQuartz and then restart your computer:
+
+`brew install Caskroom/cask/xquartz`
+
 Using the original cs3110-2020fa opam switch, run:
 
 `opam install graphics`
 
 `opam user-setup install`
+
+Once this is complete, run `make clean` and then `make build`. Note, if you're on Windows, we are not sure how the install works, as this has only been tested on Macs.
 
 To actually interact with our program, we have provided a Makefile:
 - `make build`: compiles all the necessary files
