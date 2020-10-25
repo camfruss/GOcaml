@@ -29,8 +29,9 @@ type command =
   | Quit
 
 (** [istone_pos pos] is the integer position of [pos].
-    Requires: [pos] is a single capitalized alphabetic character followed by 
-    integer in the interval [1, board_size]. *)
+    Requires: [pos] is a single capitalized alphabetic character between A and 
+    the board_size - 1th character in the alphabet followed by an integer in the
+    interval [1, board_size]. *)
 val istone_pos : string -> (int * int)
 
 (** [parse game str] parses a player's input into a [command]. The verb must be

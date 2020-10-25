@@ -5,10 +5,6 @@ type t
 (** [stone] is the type representing the black or white stones *)
 type stone = Black | White
 
-(** [InternalError] is raised when the game engine crashes or finds an 
-    unexpected and fatal result. *)
-exception InternalError
-
 (** [KoException] is raised when the configuration of a Go board is repeated 
     twice in a single game. *)
 exception KoException
@@ -48,6 +44,13 @@ val ko : t -> (int * int) -> bool
 (** [stones t s] is the col and row of every stone on the board of type 
     [stone]. *)
 val stones : t -> stone -> (int * int) list
+
+(** [turn t] is the stone of the player whose turn it currently is. *)
+val turn : t -> stone
+
+(** [names t] is the pair of player names, with the first value playing with 
+    black stones and the second with white.  *)
+val names : t -> (string * string)
 
 (** [step t move time] is the new game after the current player places a stone 
     on [move] and spends [time] seconds doing so. *)

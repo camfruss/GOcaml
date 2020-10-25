@@ -1,8 +1,6 @@
 open Util
 open Yojson.Basic.Util
 
-exception InternalError
-
 exception KoException
 
 exception SelfCaptureException
@@ -258,16 +256,21 @@ let score t =
 let ko go (col,row) = 
   failwith "unimplemented"
 
+let turn t =
+  if t.config.turn = 'b' then Black else White
+
+let names t = 
+  (t.players.p1.id, t.players.p2.id)
+
 (** [n_stones] is the number of stones currently on the board in [t]. *)
 let n_stones t =
   let p1,p2 = t.players.p1.prisoners, t.players.p2.prisoners in
   let n_prisoners = List.length p1 + List.length p2 in
   let n_moves = function
-    | 'w' -> max_triple3 t.board.white
-    | 'b' -> max_triple3 t.board.black
-    | _ -> raise InternalError
+    | Black -> max_triple3 t.board.white
+    | White -> max_triple3 t.board.black
   in 
-  n_moves t.config.turn - n_prisoners
+  n_moves (turn t) - n_prisoners
 
 (** [deduct_time t time] is the game with the proper time parameters after 
     the player who just went spent [time] seconds on their move. *)
@@ -288,15 +291,12 @@ let new_players t =
 (** [new_board t m] is the updated board for [t] after move [m]. *)
 let new_board t (c,r) = 
   let move' = (c, r, 1 + n_stones t) in
-  let turn = t.config.turn in
-  match turn with
-  | 'b' -> {t.board with black = move' :: t.board.black}
-  | 'w' -> {t.board with white = move' :: t.board.white}
-  | _ -> raise InternalError
+  match (turn t) with
+  | Black -> {t.board with black = move' :: t.board.black}
+  | White -> {t.board with white = move' :: t.board.white}
 
 let new_config t = 
-  let turn = t.config.turn in
-  let turn' = if turn = 'b' then 'w' else 'b' in
+  let turn' = if (turn t) = Black then 'w' else 'b' in
   {t.config with turn = turn'}
 
 let step t move time = 

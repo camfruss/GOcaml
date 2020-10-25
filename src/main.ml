@@ -21,7 +21,8 @@ let exit_message = "We hope you enjoyed playing GOCaml and come back soon!"
 
 (** [play game] game while command isn't to quit. If command is play, update state. *)
 let rec play game = 
-  print_string "> ";
+  let name = if turn game = White then "W" else "B" in
+  print_string (name ^ " > ");
   let user_input = read_line () in 
   try 
     match parse game user_input with
@@ -31,9 +32,9 @@ let rec play game =
     | Play pos -> play (step game (istone_pos pos) 0)
     | Save s -> begin
       let exists = Sys.file_exists s in 
-      if not exists then to_json game s; 
-      print_endline "A file with this name already exists."; 
-      print_endline "Please choose a different name."; play game
+      if not exists then to_json game s 
+      else (print_endline "A file with this name already exists."; 
+      print_endline "Please choose a different name."; play game)
     end
   with 
     | Empty -> 
