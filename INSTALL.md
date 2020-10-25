@@ -3,7 +3,9 @@
 There are many ways to set up a working environment to run this project. As of right now, we only need one additional package, Graphics. 
 
 Using the original cs3110-2020fa opam switch, run:
+
 `opam install graphics`
+
 `opam user-setup install`
 
 To actually interact with our program, we have provided a Makefile:
@@ -14,4 +16,4 @@ To actually interact with our program, we have provided a Makefile:
 - `make gocaml`: launches the terminal version of the game
 - `make gui`: launches the graphical user interface (in progress)
 
-These last two are the most important for interacting with GOCaml.
+These last two are the most important for interacting with GOcaml.

@@ -13,13 +13,16 @@ let welcome_message =
     and the board size specified in the game file :)
   - quit
     for when you are done playing :(
+  - save <filename>
+    for when you are done playing but want to save your current progress
 
   If you ever want to quit the terminal, press ^D (control D).
   |}
 
 let exit_message = "We hope you enjoyed playing GOCaml and come back soon!"
 
-(** [play game] game while command isn't to quit. If command is play, update state. *)
+(** [play game] manages each turn, parsing input, and displaying helpful 
+    information to the terminal. *)
 let rec play game = 
   let name = if turn game = White then "W" else "B" in
   print_string (name ^ " > ");
@@ -46,7 +49,7 @@ let rec play game =
     | StoneAlreadyExists ->
       print_endline "A stone already exists in that location."; play game
 
-(** [main ()] prompts for the game to play, then starts it. *)
+(** [main] prompts for the game to play, then starts it. *)
 let main () =
   print_endline welcome_message;
   print_string "Please enter the name of the game file you wish to load.\n> ";
@@ -59,5 +62,4 @@ let main () =
         print_string "Please enter a valid GOCaml file.\n> "; init ()
   in init ()
 
-(* Execute the game engine. *)
 let () = main ()
