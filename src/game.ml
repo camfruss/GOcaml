@@ -42,7 +42,7 @@ type board = {
       after the move, respectively. The column number is the index of the 
       character of the column in the alphabet. 
       Example:
-      - 1, 1, 1 would be the stone placed B1, which becomes the only stone on 
+      - 1, 1, 1 would be the stone placed B2, which becomes the only stone on 
         the board. *)
   white : (int * int * int) list;
   black : (int * int * int) list

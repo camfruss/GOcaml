@@ -20,13 +20,15 @@ exception StoneAlreadyExists
         Example: "A1" places a stone in the top left corner. 
     - Forfeit
     - Save the current game to the file specified 
-    - Quit will quit the game application *)
+    - Quit will quit the game application 
+    - Print will print the current contents of the board *)
 type command = 
   | Pass
   | Play of string
   | Forfeit
   | Save of string
   | Quit
+  | Print
 
 (** [istone_pos pos] is the integer position of [pos].
     Requires: [pos] is a single capitalized alphabetic character between A and 

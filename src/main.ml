@@ -15,6 +15,8 @@ let welcome_message =
     for when you are done playing :(
   - save <filename>
     for when you are done playing but want to save your current progress
+  - print
+    to print the stones currently on the board
 
   If you ever want to quit the terminal, press ^D (control D).
   |}
@@ -31,6 +33,7 @@ let rec play game =
     match parse game user_input with
     | Quit -> print_endline exit_message; exit 0
     | Pass -> failwith "unimplemented"
+    | Print -> print_endline (string_of_board game); play game
     | Forfeit -> failwith "unimplimented"
     | Play pos -> play (step game (istone_pos pos) 0)
     | Save s -> begin

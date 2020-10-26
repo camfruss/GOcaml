@@ -15,4 +15,4 @@ let string_of_list cast lst =
 
 let max_triple3 lst = 
   List.fold_left 
-    (fun acc (_,_,elt) -> if elt > acc then elt else acc) Int.min_int lst 
+    (fun acc (_,_,elt) -> if elt > acc then elt else acc) 0 lst 

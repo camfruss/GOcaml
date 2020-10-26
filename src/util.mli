@@ -7,5 +7,6 @@ val combine_t : ('a -> 'b -> 'c) -> 'a * 'a -> 'b * 'b -> 'c * 'c
     string, with each element cast to a string according to [cast]. *)
 val string_of_list : ('a -> string) -> 'a list -> string
 
-(** [max_triple3 lst] finds the largest third element of a triple in [lst]. *)
+(** [max_triple3 lst] finds the largest positive third element of a triple in 
+    [lst]. If [lst] is empty, returns 0. *)
 val max_triple3 : (int * int * int) list -> int
