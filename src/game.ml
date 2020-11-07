@@ -24,9 +24,9 @@ type players = {
 (** [to_player json] is the player record represented by a valid player.  *)
 let to_player json = 
   let prisoners = json 
-    |> member "prisoners" 
-    |> to_list 
-    |> List.map (fun elt -> elt |> to_int) in
+                  |> member "prisoners" 
+                  |> to_list 
+                  |> List.map (fun elt -> elt |> to_int) in
   {
     byoyomi = json |> member "byoyomi" |> to_int;
     game_time = json |> member "game_time" |> to_int;
@@ -116,7 +116,7 @@ let from_player p name =
         "id" : "%s",
         "prisoners" : %s
     }|} name p.byoyomi p.game_time p.id 
-       (string_of_list string_of_int p.prisoners)
+    (string_of_list string_of_int p.prisoners)
 
 (** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
@@ -195,7 +195,7 @@ let in_bounds t (col,row) =
 let is_empty t pos = 
   if in_bounds t pos then 
     not (List.mem pos (stones t Black) 
-      || List.mem pos (stones t White))
+         || List.mem pos (stones t White))
   else false
 
 (** [c_adjacent pos] are the coordinates of all the positions adjacent to 
@@ -223,11 +223,11 @@ let group t pos =
       c_adjacent pos |> 
       List.filter 
         (fun pos -> 
-          List.mem pos stones 
-          && 
-          not (List.mem pos !visited)
-          &&
-          not (List.mem pos !stack)) 
+           List.mem pos stones 
+           && 
+           not (List.mem pos !visited)
+           &&
+           not (List.mem pos !stack)) 
     in
     visited := pos :: !visited;
     stack := !stack @ boundary; ()
@@ -250,8 +250,7 @@ let liberties t pos =
     List.map (fun c -> if is_empty t c then 1 else 0) all_adjacent 
   in List.fold_left (fun acc v -> acc + v) 0 all_liberties
 
-let score t =
-  failwith "unimplemented"
+
 
 let ko go (col,row) = 
   failwith "unimplemented"
@@ -327,3 +326,56 @@ let string_of_string_string_array arr =
 
 let string_of_board t =
   string_of_string_string_array (full_board t)
+
+(**Scoring implementation *)
+(**[color] is the type representing the color of a space on a board.*)
+type color = B | W | N
+
+(**[pos_color b p] is the color of [p] for [board] *)
+let pos_color board  =  function
+  | pos -> 
+    if List.mem pos board.white then W
+    else if List.mem pos board.black then B
+    else N
+
+let set_color node stone grid = 
+  match node with 
+  | (col, row, _) -> 
+    grid.(col).(row) <- stone 
+
+(**[valid_adjacent t node] is true if [node] is within the bounds of [t]*)
+let valid_node t = function
+  | (col, row, _) ->
+    in_bounds t (col,row)
+
+(**[floodfill n b s] fills [board] with color [stone] of all other empty spaces 
+    that are reached by [node].
+    Requires: blank and stone cannot be of same color *)
+let rec floodfill t grid node blank stone = 
+  if valid_node t node then  
+    let node_color = pos_color t.board node in 
+    if node_color <> blank then ()
+    else begin 
+      set_color node stone grid;
+      match node with 
+      | (col, row, num) -> 
+        floodfill t grid (col - 1, row, num) blank stone;
+        floodfill t grid (col + 1, row, num) blank stone;
+        floodfill t grid (col, row - 1, num) blank stone;
+        floodfill t grid (col, row + 1, num) blank stone;
+    end 
+
+(**[fill g c] is a nxn matrix with [color]'s territory and neutral territory
+    filled *)
+let fill t grid color = 
+  0
+
+(**[score_helper w_g b_g w_s b_s] calculates the score of the board*)
+let score_helper w_grid b_grid w_score b_score =
+  (b_score, w_score)
+
+let score t =
+  let grid = full_board t in (**grid of "W" and "B" *)
+  let w_grid = fill t grid W in 
+  let b_grid = fill t grid B in 
+  score_helper w_grid b_grid 0 0  
