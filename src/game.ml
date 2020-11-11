@@ -167,7 +167,7 @@ let to_json t out_file =
         %s
       }|} (from_players t.players) (from_board t.board) (from_config t.config)
   in 
-  let oc = open_out out_file in
+  let oc = open_out out_file in (** TODO: if doesn't end in .json,InvalidFile *)
   Printf.fprintf oc "%s\n" content;
   close_out oc
 
@@ -191,6 +191,9 @@ let in_bounds t (col,row) =
   col >= 0 && col < max_size 
   &&
   row >= 0 && row < max_size
+
+let bounds t = 
+  t.board.size
 
 let is_empty t pos = 
   if in_bounds t pos then 

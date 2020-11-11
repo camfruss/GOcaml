@@ -16,3 +16,9 @@ let string_of_list cast lst =
 let max_triple3 lst = 
   List.fold_left 
     (fun acc (_,_,elt) -> if elt > acc then elt else acc) 0 lst 
+
+let quartet_swap arr = 
+  let rec swap acc = function
+  | (v1, v2, v3, v4) :: t -> swap ((v2, v1, v4, v3) :: acc) t
+  | [] -> Array.of_list acc
+  in swap [] (Array.to_list arr)

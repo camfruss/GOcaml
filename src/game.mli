@@ -25,6 +25,9 @@ val to_json : t -> string -> unit
     within the bounds of the board. *)
 val in_bounds : t -> (int * int) -> bool
 
+(** [bounds t] is the nxn size of the board in game [t]. *)
+val bounds : t -> int
+
 (** [is_empty t pos] is whether there is no stone current at position [pos]
     in the [t]. *)
 val is_empty : t -> (int * int) -> bool
