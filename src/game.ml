@@ -328,54 +328,94 @@ let string_of_board t =
   string_of_string_string_array (full_board t)
 
 (**Scoring implementation *)
-(**[color] is the type representing the color of a space on a board.*)
-type color = B | W | N
 
-(**[pos_color b p] is the color of [p] for [board] *)
-let pos_color board  =  function
-  | pos -> 
-    if List.mem pos board.white then W
-    else if List.mem pos board.black then B
-    else N
-
-let set_color node stone grid = 
-  match node with 
-  | (col, row, _) -> 
-    grid.(col).(row) <- stone 
-
-(**[valid_adjacent t node] is true if [node] is within the bounds of [t]*)
-let valid_node t = function
-  | (col, row, _) ->
-    in_bounds t (col,row)
+let set_color (col,row) stone grid = 
+  grid.(col).(row) <- stone 
 
 (**[floodfill n b s] fills [board] with color [stone] of all other empty spaces 
-    that are reached by [node].
+    that are reached by [(col,row)].
     Requires: blank and stone cannot be of same color *)
-let rec floodfill t grid node blank stone = 
-  if valid_node t node then  
-    let node_color = pos_color t.board node in 
+let rec floodfill t grid (col,row) blank stone = 
+  if in_bounds t (col,row) then  
+    let node_color = grid.(col).(row) in 
     if node_color <> blank then ()
     else begin 
-      set_color node stone grid;
-      match node with 
-      | (col, row, num) -> 
-        floodfill t grid (col - 1, row, num) blank stone;
-        floodfill t grid (col + 1, row, num) blank stone;
-        floodfill t grid (col, row - 1, num) blank stone;
-        floodfill t grid (col, row + 1, num) blank stone;
+      set_color (col,row) stone grid;
+      floodfill t grid (col - 1, row) blank stone;
+      floodfill t grid (col + 1, row) blank stone;
+      floodfill t grid (col, row - 1) blank stone;
+      floodfill t grid (col, row + 1) blank stone;
     end 
 
-(**[fill g c] is a nxn matrix with [color]'s territory and neutral territory
-    filled *)
-let fill t grid color = 
-  0
+(**[territory_finder g p c d] is true if [pos] is within [color]'s territory
+    or neutral territory, false otherwise. Checks in order of n e s w *)
+let rec territory_finder grid pos color og_pos dir = 
+  let grid_dim = Array.length grid in 
+  let col = fst pos in 
+  let row = snd pos in 
+  let pos_color = grid.(col).(row) in 
+  match pos_color with 
+  | "W" -> if color = "W" then true 
+    else territory_finder grid og_pos color og_pos (dir + 1)
+  | "B" -> if color = "B" then true 
+    else territory_finder grid og_pos color og_pos (dir + 1) 
+  | "⋅" -> begin 
+      match dir with 
+      | 0 -> if col -1 >=0
+        then territory_finder grid (col - 1, row) color og_pos 0 
+        else territory_finder grid og_pos color og_pos 1 
+      | 1 -> if row +1 < grid_dim
+        then territory_finder grid (col, row + 1) color og_pos 1 
+        else territory_finder grid og_pos color og_pos 2 
+      | 2 -> if col +1 < grid_dim
+        then territory_finder grid (col + 1, row) color og_pos 2 
+        else territory_finder grid og_pos color og_pos 3 
+      | 3 -> if row -1 >=0
+        then territory_finder grid (col, row -1) color og_pos 3 
+        else false
+      | _ -> false 
+    end 
+  | _ ->  failwith "floodfill failed"
 
-(**[score_helper w_g b_g w_s b_s] calculates the score of the board*)
-let score_helper w_grid b_grid w_score b_score =
-  (b_score, w_score)
+(**[fill t g c f (col,r)] is a nxn matrix with [color]'s territory and 
+    neutral territory filled *)
+let rec fill t grid c filler (col,row) = 
+  if row = t.board.size then fill t grid c filler (col +1,0)
+  else if col = t.board.size then grid 
+  else begin
+    let color = grid.(col).(row) in 
+    match color with 
+    | "⋅" -> begin
+        if territory_finder grid (col,row) c (col,row) 0 then 
+          let update_grid =  floodfill t grid (col,row) "⋅" filler in 
+          fill t grid c filler (col,row + 1)
+        else  fill t grid c filler (col,row + 1)
+      end 
+    | _ -> fill t grid c filler (col,row + 1)
+  end 
+
+(**[score_helper w_g b_g w_s b_s (c,r)] calculates the score of the board*)
+let rec score_helper w_grid b_grid w_score b_score (col,row)=
+  let max_dim = Array.length w_grid in 
+  if row = max_dim 
+  then score_helper w_grid b_grid w_score b_score (col+1,0)
+  else if col = max_dim then (b_score, w_score) 
+  else
+    let w_pos = w_grid.(col).(row) in 
+    let b_pos = b_grid.(col).(row) in 
+    match w_pos with 
+    | "w" -> if b_pos = "⋅" 
+      then score_helper w_grid b_grid (w_score + 1) b_score (col,row +1 )
+      else 
+        score_helper w_grid b_grid w_score b_score (col,row +1 )
+    | "⋅" -> if b_pos = "b" 
+      then score_helper w_grid b_grid w_score (b_score +1) (col,row +1 )
+      else 
+        score_helper w_grid b_grid w_score b_score (col,row +1 )
+    | _ -> score_helper w_grid b_grid w_score b_score (col,row +1 )
 
 let score t =
   let grid = full_board t in (**grid of "W" and "B" *)
-  let w_grid = fill t grid W in 
-  let b_grid = fill t grid B in 
-  score_helper w_grid b_grid 0 0  
+  let w_grid = fill t grid "W" "w" (0,0) in 
+  let b_grid = fill t grid "B" "b" (0,0) in 
+  score_helper w_grid b_grid 0 0 (0,0)  
