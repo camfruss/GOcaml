@@ -378,20 +378,23 @@ let rec territory_finder grid pos color og_pos dir =
   | _ ->  failwith "floodfill failed"
 
 (**[fill t g c f (col,r)] is a nxn matrix with [color]'s territory and 
-    neutral territory filled *)
-let rec fill t grid c filler (col,row) = 
-  if row = t.board.size then fill t grid c filler (col +1,0)
+    neutral territory filled with [f]*)
+let rec fill t grid c f (col,row) = 
+  if row = t.board.size then fill t grid c f (col +1,0)
   else if col = t.board.size then grid 
   else begin
     let color = grid.(col).(row) in 
     match color with 
     | "⋅" -> begin
         if territory_finder grid (col,row) c (col,row) 0 then 
-          let update_grid =  floodfill t grid (col,row) "⋅" filler in 
-          fill t grid c filler (col,row + 1)
-        else  fill t grid c filler (col,row + 1)
+          (* let update_grid =  floodfill t grid (col,row) "⋅" f in  *)
+          let x = 
+            floodfill t grid (col,row) "⋅" f;
+            (fill t grid c f (col,row + 1)) in 
+          x
+        else  fill t grid c f (col,row + 1)
       end 
-    | _ -> fill t grid c filler (col,row + 1)
+    | _ -> fill t grid c f (col,row + 1)
   end 
 
 (**[score_helper w_g b_g w_s b_s (c,r)] calculates the score of the board*)
@@ -405,17 +408,25 @@ let rec score_helper w_grid b_grid w_score b_score (col,row)=
     let b_pos = b_grid.(col).(row) in 
     match w_pos with 
     | "w" -> if b_pos = "⋅" 
-      then score_helper w_grid b_grid (w_score + 1) b_score (col,row +1 )
+      then score_helper w_grid b_grid (w_score +. 1.) b_score (col,row +1 )
       else 
         score_helper w_grid b_grid w_score b_score (col,row +1 )
     | "⋅" -> if b_pos = "b" 
-      then score_helper w_grid b_grid w_score (b_score +1) (col,row +1 )
+      then score_helper w_grid b_grid w_score (b_score +. 1.) (col,row +1 )
       else 
         score_helper w_grid b_grid w_score b_score (col,row +1 )
     | _ -> score_helper w_grid b_grid w_score b_score (col,row +1 )
 
 let score t =
+  let num_prisoners p = 
+    let p1_list = p.prisoners in
+    float_of_int (List.length p1_list) 
+  in  
   let grid = full_board t in (**grid of "W" and "B" *)
   let w_grid = fill t grid "W" "w" (0,0) in 
   let b_grid = fill t grid "B" "b" (0,0) in 
-  score_helper w_grid b_grid 0 0 (0,0)  
+  let territory_score = score_helper w_grid b_grid 0. 0. (0,0) in 
+  let b_score = (fst territory_score) +. num_prisoners t.players.p1 in 
+  let w_score = (snd territory_score) +. num_prisoners t.players.p2 
+                +. t.config.komi in 
+  (b_score, w_score)

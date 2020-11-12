@@ -104,6 +104,12 @@ let game_tests = [
   (* Is Empty Tests *)
   cmp_values "standard_19 F8 is empty" (is_empty standard_19 (5,7)) true;
   cmp_values "corner A1 is not empty" (is_empty corner (0,0)) false;
+
+  (* Scoring Tests *)
+  cmp_values "corner score" (score corner) (0.0,5.5);
+  cmp_values "standard_19 score" (score standard_19) (0.0, 6.5);
+
+
 ]
 
 let suite =
