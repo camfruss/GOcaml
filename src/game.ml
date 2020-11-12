@@ -24,9 +24,9 @@ type players = {
 (** [to_player json] is the player record represented by a valid player.  *)
 let to_player json = 
   let prisoners = json 
-    |> member "prisoners" 
-    |> to_list 
-    |> List.map (fun elt -> elt |> to_int) in
+                  |> member "prisoners" 
+                  |> to_list 
+                  |> List.map (fun elt -> elt |> to_int) in
   {
     byoyomi = json |> member "byoyomi" |> to_int;
     game_time = json |> member "game_time" |> to_int;
@@ -116,7 +116,7 @@ let from_player p name =
         "id" : "%s",
         "prisoners" : %s
     }|} name p.byoyomi p.game_time p.id 
-       (string_of_list string_of_int p.prisoners)
+    (string_of_list string_of_int p.prisoners)
 
 (** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
@@ -195,7 +195,7 @@ let in_bounds t (col,row) =
 let is_empty t pos = 
   if in_bounds t pos then 
     not (List.mem pos (stones t Black) 
-      || List.mem pos (stones t White))
+         || List.mem pos (stones t White))
   else false
 
 (** [c_adjacent pos] are the coordinates of all the positions adjacent to 
@@ -223,11 +223,11 @@ let group t pos =
       c_adjacent pos |> 
       List.filter 
         (fun pos -> 
-          List.mem pos stones 
-          && 
-          not (List.mem pos !visited)
-          &&
-          not (List.mem pos !stack)) 
+           List.mem pos stones 
+           && 
+           not (List.mem pos !visited)
+           &&
+           not (List.mem pos !stack)) 
     in
     visited := pos :: !visited;
     stack := !stack @ boundary; ()
@@ -327,3 +327,9 @@ let string_of_string_string_array arr =
 
 let string_of_board t =
   string_of_string_string_array (full_board t)
+
+
+let forfeit_message t = 
+  if turn t = Black 
+  then "Black has forfeit. \nWhite has won the game!" 
+  else "White has forfeit. \nBlack has won the game!" 

@@ -6,7 +6,7 @@ let welcome_message =
   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
   ■           WELCOME TO GOCAML           ■
   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
-  
+
   Supported Moves
   - play <position>
     make sure the position is a single character followed by a number between 1
@@ -34,23 +34,23 @@ let rec play game =
     | Quit -> print_endline exit_message; exit 0
     | Pass -> failwith "unimplemented"
     | Print -> print_endline (string_of_board game); play game
-    | Forfeit -> failwith "unimplimented"
+    | Forfeit -> print_endline (forfeit_message game); exit 0
     | Play pos -> play (step game (istone_pos pos) 0)
     | Save s -> begin
-      let exists = Sys.file_exists s in 
-      if not exists then to_json game s 
-      else (print_endline "A file with this name already exists."; 
-      print_endline "Please choose a different name."; play game)
-    end
+        let exists = Sys.file_exists s in 
+        if not exists then to_json game s 
+        else (print_endline "A file with this name already exists."; 
+              print_endline "Please choose a different name."; play game)
+      end
   with 
-    | Empty -> 
-      print_endline "You didn't type anything! Try again!"; play game
-    | Deformed -> 
-      print_endline "That's not a valid command!"; play game
-    | GoOutOfBounds ->
-      print_endline "The position is out of the game bounds"; play game
-    | StoneAlreadyExists ->
-      print_endline "A stone already exists in that location."; play game
+  | Empty -> 
+    print_endline "You didn't type anything! Try again!"; play game
+  | Deformed -> 
+    print_endline "That's not a valid command!"; play game
+  | GoOutOfBounds ->
+    print_endline "The position is out of the game bounds"; play game
+  | StoneAlreadyExists ->
+    print_endline "A stone already exists in that location."; play game
 
 (** [main] prompts for the game to play, then starts it. *)
 let main () =
