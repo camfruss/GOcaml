@@ -30,13 +30,13 @@ let istone_pos pos =
     Returns a command otherwise. *)
 let extract_command = function
   | h :: [] ->
-      if h = "pass" then Pass
-      else if h = "forfeit" then Forfeit
-      else if h = "quit" then Quit 
-      else if h = "print" then Print else rd ()
+    if h = "pass" then Pass
+    else if h = "forfeit" then Forfeit
+    else if h = "quit" then Quit 
+    else if h = "print" then Print else rd ()
   | h :: t :: [] ->
-      if h = "play" then Play t
-      else if h = "save" then Save t else rd ()
+    if h = "play" then Play t
+    else if h = "save" then Save t else rd ()
   | [] -> raise Empty
   | _ -> rd ()
 
@@ -49,7 +49,7 @@ let valid_placement game cmd =
   | Play str -> 
     let ipos = istone_pos str in
     if Game.in_bounds game ipos then 
-    if Game.is_empty game ipos then cmd else raise StoneAlreadyExists 
+      if Game.is_empty game ipos then cmd else raise StoneAlreadyExists 
     else raise GoOutOfBounds
   | Pass | Forfeit | Quit | Save _ | Print -> cmd
 

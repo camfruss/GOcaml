@@ -5,6 +5,8 @@ MLIS=$(MODULES:=.mli)
 MAIN=main.byte
 TEST=test.byte
 GUI=gui.byte
+TERMINAL=n
+
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
 build:
@@ -15,10 +17,11 @@ clean:
 	rm -rf gocaml.zip
 
 gocaml:
-	$(OCAMLBUILD) ./$(MAIN) && ./$(MAIN)
-
-gui:
-	$(OCAMLBUILD) ./$(GUI) && ./$(GUI)
+	if [ "$(TERMINAL)" = "y" ]; \
+	  then $(OCAMLBUILD) ./$(MAIN) && ./$(MAIN); \
+  else \
+	  $(OCAMLBUILD) ./$(GUI) && ./$(GUI); \
+  fi
 
 test:
 	$(OCAMLBUILD) -tag 'debug' ./$(TEST) && ./$(TEST)

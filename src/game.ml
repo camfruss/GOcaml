@@ -5,6 +5,10 @@ exception KoException
 
 exception SelfCaptureException
 
+exception StoneAlreadyExistsException (* TODO: Remove this one in command.ml *)
+
+exception TimeExpiredException
+
 type stone = Black | White
 
 (** [player] is the type representing a single player in a go game. *)
@@ -23,7 +27,8 @@ type players = {
 
 (** [to_player json] is the player record represented by a valid player.  *)
 let to_player json = 
-  let prisoners = json 
+  let prisoners = 
+    json 
     |> member "prisoners" 
     |> to_list 
     |> List.map (fun elt -> elt |> to_int) in
@@ -116,7 +121,7 @@ let from_player p name =
         "id" : "%s",
         "prisoners" : %s
     }|} name p.byoyomi p.game_time p.id 
-       (string_of_list string_of_int p.prisoners)
+    (string_of_list string_of_int p.prisoners)
 
 (** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
@@ -181,8 +186,8 @@ let positions lst =
   in pos_tr [] lst
 
 let stones t = function
-  | White -> positions t.board.white
   | Black -> positions t.board.black
+  | White -> positions t.board.white
 
 let adjacent = [(1, 0); (0, 1); (-1, 0); (0, -1)]
 
@@ -198,7 +203,7 @@ let bounds t =
 let is_empty t pos = 
   if in_bounds t pos then 
     not (List.mem pos (stones t Black) 
-      || List.mem pos (stones t White))
+         || List.mem pos (stones t White))
   else false
 
 (** [c_adjacent pos] are the coordinates of all the positions adjacent to 
@@ -226,11 +231,11 @@ let group t pos =
       c_adjacent pos |> 
       List.filter 
         (fun pos -> 
-          List.mem pos stones 
-          && 
-          not (List.mem pos !visited)
-          &&
-          not (List.mem pos !stack)) 
+           List.mem pos stones 
+           && 
+           not (List.mem pos !visited)
+           &&
+           not (List.mem pos !stack)) 
     in
     visited := pos :: !visited;
     stack := !stack @ boundary; ()
@@ -256,11 +261,17 @@ let liberties t pos =
 let score t =
   failwith "unimplemented"
 
-let ko go (col,row) = 
-  failwith "unimplemented"
+let ko t (c,r) = false
+(* failwith "unimplemented" *) (** TODO *)
 
 let turn t =
   if t.config.turn = 'b' then Black else White
+
+(** TOOD *)
+let cur_player t = 
+  match turn t with
+  | Black -> t.players.p1
+  | White -> t.players.p2
 
 let names t = 
   (t.players.p1.id, t.players.p2.id)
@@ -273,12 +284,27 @@ let n_stones t =
     | Black -> max_triple3 t.board.white
     | White -> max_triple3 t.board.black
   in 
-  n_moves (turn t) - n_prisoners
+  match n_moves (turn t) with 
+  | (_,_,n) -> n - n_prisoners
+
+let last_stone t = 
+  let s = match turn t with
+    | White -> t.board.black 
+    | Black -> t.board.white
+  in 
+  match max_triple3 s with
+  | (c,r,_) -> (c,r)
 
 (** [deduct_time t time] is the game with the proper time parameters after 
     the player who just went spent [time] seconds on their move. *)
 let deduct_time t time = 
-  failwith "unimplemented"
+  let p = cur_player t in
+  let t_new = 
+    if time <= p.game_time then (p.byoyomi, p.game_time - time)
+    else let periods_used = (time - p.game_time) / t.config.byoyomi_period in
+      if p.byoyomi > periods_used then (p.byoyomi - periods_used, 0)
+      else raise TimeExpiredException
+  in t_new
 
 (** [find_prisoners t] checks the board in [t] and determines if any stones were
     captured. 
@@ -288,25 +314,39 @@ let deduct_time t time =
 let find_prisoners t =
   failwith "unimplemented"
 
-let new_players t = 
-  failwith "unimplemented"
+let new_player t time =
+  let (byoyomi', game_time') = deduct_time t time in
+  let p = cur_player t in { 
+    p with byoyomi = byoyomi'; 
+           game_time = game_time';
+  }
+
+let new_players t time = 
+  let p = new_player t time in
+  match turn t with
+  | Black -> {t.players with p1 = p}
+  | White -> {t.players with p2 = p}
 
 (** [new_board t m] is the updated board for [t] after move [m]. *)
 let new_board t (c,r) = 
-  let move' = (c, r, 1 + n_stones t) in
-  match (turn t) with
-  | Black -> {t.board with black = move' :: t.board.black}
-  | White -> {t.board with white = move' :: t.board.white}
+  if not (is_empty t (c,r)) then raise StoneAlreadyExistsException
+  else if ko t (c,r) then raise KoException 
+  else 
+    let move' = (c, r, 1 + n_stones t) in
+    match (turn t) with
+    | Black -> {t.board with black = move' :: t.board.black}
+    | White -> {t.board with white = move' :: t.board.white}
 
 let new_config t = 
   let turn' = if (turn t) = Black then 'w' else 'b' in
   {t.config with turn = turn'}
 
 let step t move time = 
+  let players' = new_players t time in
   let board' = new_board t move in
   let config' = new_config t in
   {
-    players = t.players;
+    players = players';
     board = board';
     config = config'
   }

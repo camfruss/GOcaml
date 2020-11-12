@@ -13,6 +13,14 @@ exception KoException
     position that is immediately captured. *)
 exception SelfCaptureException
 
+(** [StoneAlreadyExists] is raised when a player attempts to place a 
+    stone on top of an existing stone. *)
+exception StoneAlreadyExistsException
+
+(** [TimeExpiredException] is raised when a player has exhausted their entire 
+    game clock. *)
+exception TimeExpiredException
+
 (** [from_json json] is the Go game that [json] represents.
     Requires: [json] is a valid json Go representation. *)
 val from_json : Yojson.Basic.t -> t
@@ -54,6 +62,11 @@ val turn : t -> stone
 (** [names t] is the pair of player names, with the first value playing with 
     black stones and the second with white.  *)
 val names : t -> (string * string)
+
+(** [last_stone t] is the column and row, respecively, of the last stone placed 
+    on the board in [t]. 
+    Returns: (-1, -1) if there are no stones on the board. *)
+val last_stone : t -> int * int
 
 (** [step t move time] is the new game after the current player places a stone 
     on [move] and spends [time] seconds doing so. *)
