@@ -9,8 +9,8 @@ let welcome_message =
 
   Supported Moves
   - play <position>
-    make sure the position is a single character followed by a number between 1
-    and the board size specified in the game file :)
+    make sure the position is a single uppercase letter followed by a number 
+    between 1 and the board size specified in the game file :)
   - quit
     for when you are done playing :(
   - save <filename>
@@ -32,7 +32,7 @@ let rec play game =
   try 
     match parse game user_input with
     | Quit -> print_endline exit_message; exit 0
-    | Pass -> failwith "unimplemented"
+    | Pass -> play (pass_update game 0)
     | Print -> print_endline (string_of_board game); play game
     | Forfeit -> print_endline (forfeit_message game); exit 0
     | Play pos -> play (step game (istone_pos pos) 0)
