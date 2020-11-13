@@ -14,7 +14,7 @@ type axis = X | Y
 
 (** [display] represents the type of the contents currently being shown on the 
     window. *)
-type display = LoadGame | Handicap | Info | Board
+type display = LoadGame | Handicap | Info | Board | ScoredBoard
 
 type board_dimensions = {
   (** [board_size] is the nxn dimension of the board. *)
@@ -72,11 +72,18 @@ let draw_stone x y r c =
   set_color c;
   fill_circle x y r
 
-(** [draw_stone_cr c,r color] draws a stone in the [c+1]th column and [r+1]th 
-    row with color [color]. *)
-let draw_stone_cr (c,r) color = 
+(** [draw_stone_cr c,r radius color] draws a stone in the [c+1]th column and 
+    [r+1]th row with color [color] with radius [radius]. *)
+let draw_stone_cr (c,r) radius color = 
   let x, y = coordinate c r in
-  draw_stone x y (!b_dims.spacing / 2 - 2) color
+  draw_stone x y radius color
+
+(** [draw_square_cr] draws a square over the [c+1]th column and [r+1]th row with
+    a width and height equal to [length]. *)
+let draw_square_cr (c,r) length = 
+  set_color black;
+  let x, y = coordinate c r in
+  draw_rect (x - length / 2) (y - length / 2) length length 
 
 (** [draw_ring x y c1 c2] draws a ring at coordiante [(x, y)] with inner color 
     [c1] and outer color [c2]. *)
@@ -198,15 +205,31 @@ let setup_handicap game h =
   if h >= 4 then add [(n1, n1); (n2, n2)];
   if h = 3 then add [(n2, n2)];
   if h >= 2 then add [(n1, n2); (n2, n1)];
-  List.iter (fun (c,r) -> draw_stone_cr (c,r) black) !h_positions;
+  List.iter 
+    (fun (c,r) -> 
+       draw_stone_cr (c,r) (!b_dims.spacing / 2 - 2) black
+    ) !h_positions;
   handicap game !h_positions
 
 (** [setup_stones game] draws the stones already on the board in [game]. *)
 let setup_stones game = 
+  let rad = (!b_dims.spacing / 2 - 2) in
   if stones game Black = [] then setup_handicap game 5 else (** TODO: put actual number in *)
-    (List.iter (fun (c,r) -> draw_stone_cr (c,r) white) (stones game White);
-     List.iter (fun (c,r) -> draw_stone_cr (c,r) black) (stones game Black);
+    (List.iter (fun (c,r) -> draw_stone_cr (c,r) rad white) (stones game White);
+     List.iter (fun (c,r) -> draw_stone_cr (c,r) rad black) (stones game Black);
      prev_ring game `Draw; game)
+
+let set_score game = 
+  let grid = fill_grid game in
+  for r = 0 to Array.length grid - 1 do
+    for c = 0 to Array.length grid.(r) - 1 do 
+      match grid.(r).(c) with
+      | BlackT -> draw_stone_cr (c, r) 4 black
+      | WhiteT -> draw_stone_cr (c, r) 4 white
+      | Neutral -> draw_square_cr (c, r) 16 
+      | Empty | BlackS | WhiteS -> ()
+    done
+  done
 
 (** [set_game g] initializes the initial board state given game [g]. *)
 let set_game game = 
@@ -239,9 +262,11 @@ let rec user_input game display t0 =
       | ('i', Info) -> user_input (set_game game) Board t0
       | ('i', Board) -> set_info game; user_input game Info t0
       | ('q', _) -> exit 0
-      | ('s', Info) -> to_json game "./games/easy_score.json"; exit 0 (* TODO: give an actual name *)
+      | ('s', Info) -> to_json game "./games/hard_score.json"; exit 0 (* TODO: give an actual name *)
+      | ('s', Board) -> set_score game; user_input game ScoredBoard t0
+      | ('s', ScoredBoard) -> ignore (set_game game); user_input game Board t0
       | _ -> user_input game Board t0
-    else if button  && display != Info then
+    else if button  && display != Info && display != ScoredBoard then
       let column = index mouse_x X in
       let row = index mouse_y Y in
       let actual_x, actual_y = coordinate column row in
@@ -255,17 +280,20 @@ let rec user_input game display t0 =
         draw_stone actual_x actual_y !b_dims.radius c1;
         draw_ring actual_x actual_y c1 c2;
         prev_ring game `Remove;
-        ignore (set_game game'); (* TODO: possible threading problem based on debugging... *)
+        ignore (set_game game');
         user_input game' Board t1
       with 
       | KoException -> user_input game Board t0
       | SelfCaptureException -> user_input game Board t0
       | StoneAlreadyExistsException -> user_input game Board t0
       | TimeExpiredException -> () (* TODO: implement *)
-    else user_input game Info t0
+    else match display with 
+      | Info -> user_input game Info t0
+      | ScoredBoard -> user_input game ScoredBoard t0
+      | d -> user_input game d t0 
 
 let main () =
-  let game = Yojson.Basic.from_file "games/9.json" |> from_json in (* TODO: remove *)
+  let game = Yojson.Basic.from_file "games/easy_score.json" |> from_json in (* TODO: load user-defined game *)
   open_graph (Printf.sprintf " %dx%d" window_size window_size);
   set_window_title "GOcaml";
   user_input (set_game game) Board (time ())

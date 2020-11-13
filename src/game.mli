@@ -5,6 +5,9 @@ type t
 (** [stone] is the type representing the black or white stones *)
 type stone = Black | White
 
+(** TODO *)
+type intersection = WhiteT | BlackT | Neutral | WhiteS | BlackS | Empty
+
 (** [KoException] is raised when the configuration of a Go board is repeated 
     twice in a single game. *)
 exception KoException
@@ -78,3 +81,6 @@ val step : t -> (int * int) -> int -> t
 
 (** [string_of_board t] is the string representation of a board. *)
 val string_of_board : t -> string
+
+(** TODO: documentation *)
+val fill_grid : t -> intersection array array

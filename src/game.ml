@@ -332,7 +332,6 @@ let remove_stones t s =
     | [] -> t
   in remove_stone t s
 
-
 (** [remove_prisoners t pos] checks the board in [t] and determines if any 
     stones were captured from the stone placed at position [pos]. *)
 let remove_prisoners t pos =
@@ -427,14 +426,14 @@ let string_of_board t =
   string_of_string_string_array (full_board t)
 
 (* Scoring  *)
-type territory = WhiteT | BlackT | Neutral | WhiteS | BlackS | Empty
+type intersection = WhiteT | BlackT | Neutral | WhiteS | BlackS | Empty
 
-let score t =
+let fill_grid t = 
   let dim = t.board.size in
   let grid = Array.make_matrix dim dim Empty in
-  (** [populate_grid s t] marks all the stones in [s] to [t]. *)
-  let populate_grid s territory = 
-    List.iter (fun (c, r) -> grid.(r).(c) <- territory) s
+  (** [populate_grid s xs] marks all the stones in [s] to [xs]. *)
+  let populate_grid s xsection = 
+    List.iter (fun (c, r) -> grid.(r).(c) <- xsection) s
   in
   populate_grid (stones t Black) BlackS; populate_grid (stones t White) WhiteS;
   let explore pos =
@@ -447,45 +446,49 @@ let score t =
       let stackable = 
         List.filter 
           (fun (c, r) -> 
-             (grid.(r).(c) != BlackS && grid.(r).(c) != WhiteS)
+             grid.(r).(c) = Empty
              && 
              not (List.mem (c, r) !visited)
           ) adj in
       let unstackable = 
-        List.filter 
-          (fun (c, r) -> 
-             (grid.(r).(c) = BlackS || grid.(r).(c) = WhiteS)
-             && 
-             not (List.mem (c, r) !visited)
-          ) adj in
+        List.filter (fun (c, r) -> grid.(r).(c) != Empty) adj in
       boundary := !boundary @ unstackable;
-      visited := pos :: !visited;
       stack := !stack @ stackable;
+      visited := pos :: !visited;
     in 
     while !stack != [] do
-      let h = List.hd !stack in (* Note: safe, as stack is not empty. *)
-      stack := List.tl !stack;
-      traverse h; 
+      match !stack with
+      | h :: t -> stack := t; traverse h; 
+      | [] -> ()
     done; (!visited, !boundary)
   in
-  let has_stone lst territory = 
-    let filtered = List.filter (fun (c, r) -> grid.(r).(c) = territory) lst 
+  let has_x lst xsection = 
+    let filtered = List.filter (fun (c, r) -> grid.(r).(c) = xsection) lst 
     in List.length filtered > 0
   in
-  let mark lst territory = 
-    List.iter (fun (c, r) -> grid.(r).(c) <- territory) lst
+  let mark lst xsection = 
+    List.iter 
+      (fun (c, r) -> 
+         if (grid.(r).(c) != BlackS && grid.(r).(c) != WhiteS) 
+         then grid.(r).(c) <- xsection
+      ) lst
   in
-  for i = 0 to Array.length grid - 1 do
-    for j = 0 to Array.length grid.(i) - 1 do 
-      let visited, boundary = explore (j, i) in
-      let has_black = has_stone boundary BlackS in
-      let has_white = has_stone boundary WhiteS in
-      let has_neutral = has_stone boundary Neutral in
-      if has_neutral then mark visited Neutral
-      else if has_black && not has_white then mark visited BlackT
-      else if not has_black && has_white then mark visited WhiteT
+  for r = 0 to Array.length grid - 1 do
+    for c = 0 to Array.length grid.(r) - 1 do 
+      let should_explore = grid.(r).(c) != BlackS && grid.(r).(c) != WhiteS in
+      if should_explore then 
+        let visited, boundary = explore (c, r) in
+        let has_black = has_x boundary BlackS in
+        let has_white = has_x boundary WhiteS in
+        let has_neutral = has_x boundary Neutral in
+        if (has_black && has_white) || has_neutral then mark visited Neutral
+        else if has_black && not has_white then mark visited BlackT
+        else if not has_black && has_white then mark visited WhiteT
     done
-  done;
+  done; grid
+
+let score t =
+  let grid = fill_grid t in
   let flattened = 
     Array.map (fun x -> Array.to_list x) grid |> Array.to_list |> List.flatten 
   in
