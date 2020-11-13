@@ -357,10 +357,8 @@ let rec floodfill grid (col,row) blank stone =
 
 (**[territory_finder g p c d] is true if [pos] is within [color]'s territory
     or neutral territory, false otherwise. Checks in order of n e s w *)
-let rec territory_finder grid pos color og_pos dir = 
+let rec territory_finder grid (col,row) color og_pos dir = 
   let grid_dim = Array.length grid in 
-  let col = fst pos in 
-  let row = snd pos in 
   let pos_color = grid.(col).(row) in 
   match pos_color with 
   | "W" -> if color = "W" then true 
@@ -389,7 +387,7 @@ let rec territory_finder grid pos color og_pos dir =
     neutral territory filled with [f]*)
 let rec fill grid c f (col,row) = 
   let dim = Array.length grid in 
-  if row = dim then fill  grid c f (col +1,0)
+  if row = dim then fill grid c f (col +1,0)
   else if col = dim then grid 
   else begin
     let color = grid.(col).(row) in 
@@ -431,9 +429,10 @@ let score t =
     let p1_list = p.prisoners in
     float_of_int (List.length p1_list) 
   in  
-  let grid = full_board t in (**grid of "W" and "B" *)
-  let w_grid = fill grid "W" "w" (0,0) in 
-  let b_grid = fill grid "B" "b" (0,0) in 
+  let grid1 = full_board t in (**grid of "W" and "B" *)
+  let grid2 = full_board t in
+  let w_grid = fill grid1 "W" "w" (0,0) in 
+  let b_grid = fill grid2 "B" "b" (0,0) in 
   let territory_score = score_helper w_grid b_grid 0. 0. (0,0) in 
   let b_score = (fst territory_score) +. num_prisoners t.players.p1 in 
   let w_score = (snd territory_score) +. num_prisoners t.players.p2 
