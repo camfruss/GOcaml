@@ -56,5 +56,14 @@ val names : t -> (string * string)
     on [move] and spends [time] seconds doing so. *)
 val step : t -> (int * int) -> int -> t
 
+(** [pass_update t time] is the new game after the current player passes and
+    spends [time] seconds doing so. *)
+val pass_update : t -> int -> t 
+
 (** [string_of_board t] is the string representation of a board. *)
 val string_of_board : t -> string
+
+(** [forfeit_message t] returns the string to be displayed after a player 
+    forfeits. *)
+val forfeit_message: t -> string
+

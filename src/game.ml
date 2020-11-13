@@ -294,6 +294,8 @@ let new_board t (c,r) =
   | Black -> {t.board with black = move' :: t.board.black}
   | White -> {t.board with white = move' :: t.board.white}
 
+(** [new_config t] is the update configuration for [t]. Updates which turn it is
+*)
 let new_config t = 
   let turn' = if (turn t) = Black then 'w' else 'b' in
   {t.config with turn = turn'}
@@ -304,6 +306,25 @@ let step t move time =
   {
     players = t.players;
     board = board';
+    config = config'
+  }
+
+(** [new_players t] is the updated players for [t]. Updates the prisoners list 
+     after a pass. *)
+let new_players t = 
+  let cur_stones = n_stones t in
+  if turn t  = Black
+  then let prisoners' = t.players.p2.prisoners @ [cur_stones] in 
+    {t.players with p2 = {t.players.p2 with prisoners = prisoners'}}
+  else let prisoners' = t.players.p1.prisoners @ [cur_stones] in 
+    {t.players with p1 = {t.players.p1 with prisoners = prisoners'}}
+
+let pass_update t time = 
+  let players' = new_players t in
+  let config' = new_config t in 
+  {
+    players = players';
+    board = t.board;
     config = config'
   }
 
@@ -438,3 +459,9 @@ let score t =
   let w_score = (snd territory_score) +. num_prisoners t.players.p2 
                 +. t.config.komi in 
   (b_score, w_score)
+  
+let forfeit_message t = 
+  if turn t = Black 
+  then "Player 1 has forfeit. \nPlayer 2 has won the game!" 
+  else "Player 2 has forfeit. \nPlayer 1 has won the game!" 
+
