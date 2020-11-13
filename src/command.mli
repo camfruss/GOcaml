@@ -29,6 +29,7 @@ type command =
   | Save of string
   | Quit
   | Print
+  | Score 
 
 (** [istone_pos pos] is the integer position of [pos].
     Requires: [pos] is a single capitalized alphabetic character between A and 

@@ -22,6 +22,8 @@ let welcome_message =
   |}
 
 let exit_message = "We hope you enjoyed playing GOCaml and come back soon!"
+let score_str (a,b) = "player 1: " ^ string_of_float(a) ^ "\nplayer 2: " 
+                      ^ string_of_float(b)
 
 (** [play game] manages each turn, parsing input, and displaying helpful 
     information to the terminal. *)
@@ -34,6 +36,7 @@ let rec play game =
     | Quit -> print_endline exit_message; exit 0
     | Pass -> play (pass_update game 0)
     | Print -> print_endline (string_of_board game); play game
+    | Score -> print_endline (score_str (score game)); play game 
     | Forfeit -> print_endline (forfeit_message game); exit 0
     | Play pos -> play (step game (istone_pos pos) 0)
     | Save s -> begin
