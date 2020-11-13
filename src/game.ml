@@ -332,19 +332,27 @@ let string_of_board t =
 let set_color (col,row) stone grid = 
   grid.(col).(row) <- stone 
 
+let grid_dim grid = Array.length grid 
+
 (**[floodfill n b s] fills [board] with color [stone] of all other empty spaces 
     that are reached by [(col,row)].
     Requires: blank and stone cannot be of same color *)
-let rec floodfill t grid (col,row) blank stone = 
-  if in_bounds t (col,row) then  
+let rec floodfill grid (col,row) blank stone = 
+  let dim =  grid_dim grid in 
+  let valid_pos (c,r) =
+    c >= 0 && c < dim
+    &&
+    r >= 0 && r < dim
+  in 
+  if valid_pos (col,row) then  
     let node_color = grid.(col).(row) in 
     if node_color <> blank then ()
     else begin 
       set_color (col,row) stone grid;
-      floodfill t grid (col - 1, row) blank stone;
-      floodfill t grid (col + 1, row) blank stone;
-      floodfill t grid (col, row - 1) blank stone;
-      floodfill t grid (col, row + 1) blank stone;
+      floodfill grid (col - 1, row) blank stone;
+      floodfill grid (col + 1, row) blank stone;
+      floodfill grid (col, row - 1) blank stone;
+      floodfill grid (col, row + 1) blank stone;
     end 
 
 (**[territory_finder g p c d] is true if [pos] is within [color]'s territory
@@ -379,9 +387,10 @@ let rec territory_finder grid pos color og_pos dir =
 
 (**[fill t g c f (col,r)] is a nxn matrix with [color]'s territory and 
     neutral territory filled with [f]*)
-let rec fill t grid c f (col,row) = 
-  if row = t.board.size then fill t grid c f (col +1,0)
-  else if col = t.board.size then grid 
+let rec fill grid c f (col,row) = 
+  let dim = Array.length grid in 
+  if row = dim then fill  grid c f (col +1,0)
+  else if col = dim then grid 
   else begin
     let color = grid.(col).(row) in 
     match color with 
@@ -389,12 +398,12 @@ let rec fill t grid c f (col,row) =
         if territory_finder grid (col,row) c (col,row) 0 then 
           (* let update_grid =  floodfill t grid (col,row) "⋅" f in  *)
           let x = 
-            floodfill t grid (col,row) "⋅" f;
-            (fill t grid c f (col,row + 1)) in 
+            floodfill grid (col,row) "⋅" f;
+            (fill  grid c f (col,row + 1)) in 
           x
-        else  fill t grid c f (col,row + 1)
+        else  fill  grid c f (col,row + 1)
       end 
-    | _ -> fill t grid c f (col,row + 1)
+    | _ -> fill  grid c f (col,row + 1)
   end 
 
 (**[score_helper w_g b_g w_s b_s (c,r)] calculates the score of the board*)
@@ -423,8 +432,8 @@ let score t =
     float_of_int (List.length p1_list) 
   in  
   let grid = full_board t in (**grid of "W" and "B" *)
-  let w_grid = fill t grid "W" "w" (0,0) in 
-  let b_grid = fill t grid "B" "b" (0,0) in 
+  let w_grid = fill grid "W" "w" (0,0) in 
+  let b_grid = fill grid "B" "b" (0,0) in 
   let territory_score = score_helper w_grid b_grid 0. 0. (0,0) in 
   let b_score = (fst territory_score) +. num_prisoners t.players.p1 in 
   let w_score = (snd territory_score) +. num_prisoners t.players.p2 
