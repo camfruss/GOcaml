@@ -1,3 +1,4 @@
+open Game
 
 exception Deformed
 
@@ -48,8 +49,8 @@ let valid_placement game cmd =
   match cmd with
   | Play str -> 
     let ipos = istone_pos str in
-    if Game.in_bounds game ipos then 
-      if Game.is_empty game ipos then cmd else raise StoneAlreadyExists 
+    if in_bounds game ipos then 
+      if is_empty game ipos then cmd else raise StoneAlreadyExists 
     else raise GoOutOfBounds
   | Pass | Forfeit | Quit | Save _ | Print -> cmd
 

@@ -166,6 +166,7 @@ let setup_axis () =
     done;
   in label_axis X; label_axis Y
 
+(** *)
 let star_locations () = 
   let n1 = 
     Float.floor ((float_of_int !b_dims.board_size -. 1.0) /. 12.0) +. 2.0 
@@ -199,22 +200,24 @@ let setup_handicap game h =
     h_positions := !h_positions @ lst 
   in
   let n1, n2, n3 = star_locations () in
-  if h >= 8 then add [(n3, n1); (n3, n2)];
-  if h >= 6 then add [(n1, n3); (n2, n3)];
-  if h >= 5 && h mod 2 = 1 then add [(n3, n3)];
-  if h >= 4 then add [(n1, n1); (n2, n2)];
-  if h = 3 then add [(n2, n2)];
-  if h >= 2 then add [(n1, n2); (n2, n1)];
+  if bounds game >= 7 then 
+    (if h >= 2 then add [(n1, n2); (n2, n1)];
+     if h = 3 then add [(n2, n2)];
+     if h >= 4 then add [(n1, n1); (n2, n2)]);
+  if bounds game >= 9 then
+    (if h >= 5 && h mod 2 = 1 then add [(n3, n3)];
+     if h >= 6 then add [(n1, n3); (n2, n3)];
+     if h >= 8 then add [(n3, n1); (n3, n2)];);
   List.iter 
     (fun (c,r) -> 
        draw_stone_cr (c,r) (!b_dims.spacing / 2 - 2) black
     ) !h_positions;
-  handicap game !h_positions
+  if !h_positions != [] then handicap game !h_positions else game
 
 (** [setup_stones game] draws the stones already on the board in [game]. *)
 let setup_stones game = 
   let rad = (!b_dims.spacing / 2 - 2) in
-  if stones game Black = [] then setup_handicap game 5 else (** TODO: put actual number in *)
+  if stones game Black = [] then setup_handicap game 3 else (* TODO *)
     (List.iter (fun (c,r) -> draw_stone_cr (c,r) rad white) (stones game White);
      List.iter (fun (c,r) -> draw_stone_cr (c,r) rad black) (stones game Black);
      prev_ring game `Draw; game)
@@ -226,7 +229,7 @@ let set_score game =
       match grid.(r).(c) with
       | BlackT -> draw_stone_cr (c, r) 4 black
       | WhiteT -> draw_stone_cr (c, r) 4 white
-      | Neutral -> draw_square_cr (c, r) 16 
+      | Neutral -> draw_square_cr (c, r) (!b_dims.spacing / 3) 
       | Empty | BlackS | WhiteS -> ()
     done
   done
@@ -260,9 +263,10 @@ let rec user_input game display t0 =
     if keypressed then 
       match event.key, display with 
       | ('i', Info) -> user_input (set_game game) Board t0
-      | ('i', Board) -> set_info game; user_input game Info t0
+      | ('i', Board) | ('i', ScoredBoard) -> 
+        set_info game; user_input game Info t0
       | ('q', _) -> exit 0
-      | ('s', Info) -> to_json game "./games/hard_score.json"; exit 0 (* TODO: give an actual name *)
+      | ('s', Info) -> to_json game "./games/hard_score.json"; exit 0 (* TODO *)
       | ('s', Board) -> set_score game; user_input game ScoredBoard t0
       | ('s', ScoredBoard) -> ignore (set_game game); user_input game Board t0
       | _ -> user_input game Board t0
@@ -286,14 +290,14 @@ let rec user_input game display t0 =
       | KoException -> user_input game Board t0
       | SelfCaptureException -> user_input game Board t0
       | StoneAlreadyExistsException -> user_input game Board t0
-      | TimeExpiredException -> () (* TODO: implement *)
+      | TimeExpiredException -> () (* TODO *)
     else match display with 
       | Info -> user_input game Info t0
       | ScoredBoard -> user_input game ScoredBoard t0
       | d -> user_input game d t0 
 
 let main () =
-  let game = Yojson.Basic.from_file "games/easy_score.json" |> from_json in (* TODO: load user-defined game *)
+  let game = Yojson.Basic.from_file "games/game_one.json" |> from_json in (* TODO*)
   open_graph (Printf.sprintf " %dx%d" window_size window_size);
   set_window_title "GOcaml";
   user_input (set_game game) Board (time ())

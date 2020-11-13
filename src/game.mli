@@ -5,7 +5,11 @@ type t
 (** [stone] is the type representing the black or white stones *)
 type stone = Black | White
 
-(** TODO *)
+(** [intersection] is the type representing how a single intersection may be 
+    viewed when scoring a Go game. 
+    Example: 
+      White stone and white territory correspond to [WhiteS] and [WhiteT], 
+        respectively. *)
 type intersection = WhiteT | BlackT | Neutral | WhiteS | BlackS | Empty
 
 (** [KoException] is raised when the configuration of a Go board is repeated 
@@ -82,5 +86,6 @@ val step : t -> (int * int) -> int -> t
 (** [string_of_board t] is the string representation of a board. *)
 val string_of_board : t -> string
 
-(** TODO: documentation *)
+(** [fill_grid t] is the board in [t] with black, neutral, and blwhiteack 
+    territory mark accordingly, as well as black and white stones. *)
 val fill_grid : t -> intersection array array

@@ -5,7 +5,7 @@ exception KoException
 
 exception SelfCaptureException
 
-exception StoneAlreadyExistsException (* TODO: Remove this one in command.ml *)
+exception StoneAlreadyExistsException
 
 exception TimeExpiredException
 
@@ -267,7 +267,7 @@ let liberties t pos =
   in List.fold_left (fun acc v -> acc + v) 0 all_liberties
 
 let ko t (c,r) = false
-(* failwith "unimplemented" *) (** TODO *)
+(* failwith "unimplemented" *) (* TODO *)
 
 let turn t =
   if t.config.turn = 'b' then Black else White
@@ -425,10 +425,13 @@ let string_of_string_string_array arr =
 let string_of_board t =
   string_of_string_string_array (full_board t)
 
-(* Scoring  *)
+(* MARK: - Scoring  Implementation v2 *)
+
 type intersection = WhiteT | BlackT | Neutral | WhiteS | BlackS | Empty
 
-let fill_grid t = 
+(** [init_grid t] is a nxn matrix corresponding to [t] with White stones marked 
+    as [WhiteS], Black as [BlackS], and all others as [Empty]. *)
+let init_grid t = 
   let dim = t.board.size in
   let grid = Array.make_matrix dim dim Empty in
   (** [populate_grid s xs] marks all the stones in [s] to [xs]. *)
@@ -436,36 +439,45 @@ let fill_grid t =
     List.iter (fun (c, r) -> grid.(r).(c) <- xsection) s
   in
   populate_grid (stones t Black) BlackS; populate_grid (stones t White) WhiteS;
-  let explore pos =
-    let stack = ref [pos] in
-    let visited = ref [] in
-    let boundary = ref [] in
-    let traverse pos = 
-      let adj = 
-        List.filter (fun (c, r) -> in_bounds t (c, r)) (c_adjacent pos) in
-      let stackable = 
-        List.filter 
-          (fun (c, r) -> 
-             grid.(r).(c) = Empty
-             && 
-             not (List.mem (c, r) !visited)
-          ) adj in
-      let unstackable = 
-        List.filter (fun (c, r) -> grid.(r).(c) != Empty) adj in
-      boundary := !boundary @ unstackable;
-      stack := !stack @ stackable;
-      visited := pos :: !visited;
-    in 
-    while !stack != [] do
-      match !stack with
-      | h :: t -> stack := t; traverse h; 
-      | [] -> ()
-    done; (!visited, !boundary)
-  in
+  grid
+
+(** [explore t grid pos] is the positions that are currently empty and reachable
+    from [pos] along with the positions on the boundary of this region. *)
+let explore t grid pos =
+  let stack = ref [pos] in
+  let visited = ref [] in
+  let boundary = ref [] in
+  let traverse pos = 
+    let adj = 
+      List.filter (fun (c, r) -> in_bounds t (c, r)) (c_adjacent pos) in
+    let stackable = 
+      List.filter 
+        (fun (c, r) -> 
+           grid.(r).(c) = Empty
+           && 
+           not (List.mem (c, r) !visited)
+        ) adj in
+    let unstackable = 
+      List.filter (fun (c, r) -> grid.(r).(c) != Empty) adj in
+    boundary := !boundary @ unstackable;
+    stack := !stack @ stackable;
+    visited := pos :: !visited;
+  in 
+  while !stack != [] do
+    match !stack with
+    | h :: t -> stack := t; traverse h; 
+    | [] -> ()
+  done; (!visited, !boundary)
+
+let fill_grid t = 
+  let grid = init_grid t in
+  (** [has_x lst xs] is whether [xs] is contained within [lst]. *)
   let has_x lst xsection = 
     let filtered = List.filter (fun (c, r) -> grid.(r).(c) = xsection) lst 
     in List.length filtered > 0
   in
+  (** [mark lst xs] is [grid] with all positions specified in [lst] changed to 
+      [xs]. *)
   let mark lst xsection = 
     List.iter 
       (fun (c, r) -> 
@@ -475,9 +487,9 @@ let fill_grid t =
   in
   for r = 0 to Array.length grid - 1 do
     for c = 0 to Array.length grid.(r) - 1 do 
-      let should_explore = grid.(r).(c) != BlackS && grid.(r).(c) != WhiteS in
+      let should_explore = grid.(r).(c) = Empty in
       if should_explore then 
-        let visited, boundary = explore (c, r) in
+        let visited, boundary = explore t grid (c, r) in
         let has_black = has_x boundary BlackS in
         let has_white = has_x boundary WhiteS in
         let has_neutral = has_x boundary Neutral in

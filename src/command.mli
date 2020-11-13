@@ -10,7 +10,7 @@ exception Empty
 exception GoOutOfBounds
 
 (** [StoneAlreadyExists] is raised when a player attempts to place a 
-    stone on top of an existing stone. *) (**TODO: remove *)
+    stone on top of an existing stone. *)
 exception StoneAlreadyExists
 
 (** [command] is a player's move in a game. They have the option to 
