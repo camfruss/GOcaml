@@ -30,3 +30,8 @@ let cartesian lst1 lst2 =
   List.concat (List.map (fun n1 -> List.map (fun n2 -> (n1, n2)) lst2) lst1)
 
 let time () = int_of_float (Unix.time ())
+
+let list_max = function
+  | h :: t -> 
+    Some (List.fold_left (fun acc x -> if x > acc then x else acc) h t)
+  | [] -> None

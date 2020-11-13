@@ -21,3 +21,6 @@ val cartesian : 'a list -> 'b list -> ('a * 'b) list
 
 (** [time] is the current Unix time as an integer. *)
 val time : unit -> int
+
+(** [list_max lst] is the maximum element in [lst]. *)
+val list_max : 'a list -> 'a option

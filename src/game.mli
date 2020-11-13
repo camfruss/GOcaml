@@ -63,6 +63,10 @@ val turn : t -> stone
     black stones and the second with white.  *)
 val names : t -> (string * string)
 
+(** [handicap t lst] places the handicap stones specified in [lst] on the board. 
+    It then becomes white's turn. *)
+val handicap : t -> (int * int) list -> t
+
 (** [last_stone t] is the column and row, respecively, of the last stone placed 
     on the board in [t]. 
     Returns: (-1, -1) if there are no stones on the board. *)

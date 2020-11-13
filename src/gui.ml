@@ -14,7 +14,7 @@ type axis = X | Y
 
 (** [display] represents the type of the contents currently being shown on the 
     window. *)
-type display = Info | Board
+type display = LoadGame | Handicap | Info | Board
 
 type board_dimensions = {
   (** [board_size] is the nxn dimension of the board. *)
@@ -48,16 +48,17 @@ let setup_background color =
 let index pos axis = 
   let pos' = float_of_int (pos - 2 * !b_dims.spacing) in
   let spacing = float_of_int !b_dims.spacing in
-  let bottom_left = (pos' /. spacing) |> Float.round |> int_of_float in
+  let unadjusted_index = (pos' /. spacing) |> Float.round |> int_of_float in
   match axis with
-  | X -> bottom_left
-  | Y -> !b_dims.board_size - bottom_left - 1
+  | X -> unadjusted_index
+  | Y -> !b_dims.board_size - unadjusted_index - 1
 
 (** [coordinate_ c r] is window coordinate corresponding to column [c] and row 
     [r] on a Go board. *)
 let coordinate c r = 
   let coordinate_of_index idx axis = 
-    let loc = if idx < 0 then 0
+    let loc = 
+      if idx < 0 then 0
       else if idx > !b_dims.board_size - 1 then !b_dims.board_size - 1
       else idx 
     in match axis with
@@ -85,7 +86,7 @@ let draw_ring x y c1 c2 =
   draw_stone x y r2 c2;
   draw_stone x y r1 c1
 
-(** [prev_ring game] draws or removes a ring on lastplaced stone. *)
+(** [prev_ring game] draws or removes a ring on the last placed stone. *)
 let prev_ring game style =
   let c, r = last_stone game in
   let x, y = coordinate c r in
@@ -128,7 +129,9 @@ let setup_grid () =
   let lines = Array.make !b_dims.board_size (0, 0, 0, 0) in
   let s = !b_dims.spacing in
   for i = 0 to Array.length lines - 1 do
-    lines.(i) <- ((2 + i) * s, 2 * s, (2 + i) * s, !b_dims.length - 2 * s)
+    lines.(i) <- 
+      ((2 + i) * s, 2 * s, 
+       (2 + i) * s, !b_dims.length - 2 * s)
   done;
   let segments = Array.append lines (quartet_swap lines) in 
   draw_segments segments
@@ -173,15 +176,17 @@ let setup_stars () =
   let n1, n2, n3 = star_locations () in
   let stars = 
     if !b_dims.board_size <= 7 then cartesian [n1; n2] [n1; n2]
-    else if !b_dims.board_size <= 13 then (n3, n3) :: cartesian [n1; n2] [n1; n2]
+    else if !b_dims.board_size <= 13 then 
+      (n3, n3) :: cartesian [n1; n2] [n1; n2]
     else cartesian [n1; n2; n3] [n1; n2; n3]
   in
   let coordinates = List.map (fun (c, r) -> coordinate c r) stars 
   in List.iter (fun (x, y) -> draw_stone x y 3 black) coordinates
 
-(** [setup_handicap h] places [h] stones on a Go board at the beginning of a Go 
-    game. *)
-let setup_handicap h =
+(** [setup_handicap g h] places [h] stones on a Go board at the beginning of a 
+    Go game. 
+    Requires: 2 <= [h] <= 9. *)
+let setup_handicap game h =
   let h_positions = ref [] in
   let add lst = 
     h_positions := !h_positions @ lst 
@@ -193,18 +198,20 @@ let setup_handicap h =
   if h >= 4 then add [(n1, n1); (n2, n2)];
   if h = 3 then add [(n2, n2)];
   if h >= 2 then add [(n1, n2); (n2, n1)];
-  List.iter (fun (c,r) -> draw_stone_cr (c,r) black) !h_positions
+  List.iter (fun (c,r) -> draw_stone_cr (c,r) black) !h_positions;
+  handicap game !h_positions
 
 (** [setup_stones game] draws the stones already on the board in [game]. *)
 let setup_stones game = 
-  if stones game Black = [] then setup_handicap 0 else (** TODO: put actual number in *)
+  if stones game Black = [] then setup_handicap game 5 else (** TODO: put actual number in *)
     (List.iter (fun (c,r) -> draw_stone_cr (c,r) white) (stones game White);
      List.iter (fun (c,r) -> draw_stone_cr (c,r) black) (stones game Black);
-     prev_ring game `Draw)
+     prev_ring game `Draw; game)
 
 (** [set_game g] initializes the initial board state given game [g]. *)
 let set_game game = 
   setup_dims game;
+  clear_graph ();
   setup_background (rgb 235 195 120);
   setup_grid ();
   setup_axis (); 
@@ -216,6 +223,11 @@ let set_info game =
   clear_graph ();
   setup_background (rgb 235 195 120)
 
+let set_config game = 
+  setup_background (rgb 235 195 120); ()
+(* Field to load file *)
+(* field to set handicap, default is 1 *)
+
 (** [user_input game t] listens for user input and updates the game accordingly. 
 *)
 let rec user_input game display t0 =
@@ -223,15 +235,12 @@ let rec user_input game display t0 =
   match event with
   | {mouse_x; mouse_y; button; keypressed; key} ->
     if keypressed then 
-      match event.key with 
-      | 'i' -> begin
-          match display with
-          | Info -> set_game game; user_input game Board t0
-          | Board -> set_info game; user_input game Info t0
-        end 
-      | 'q' -> exit 0
-      | 's' -> to_json game "./games/hello.json"; exit 0
-      | _ -> user_input game Board t0 (* TODO: catch all case *)
+      match event.key, display with 
+      | ('i', Info) -> user_input (set_game game) Board t0
+      | ('i', Board) -> set_info game; user_input game Info t0
+      | ('q', _) -> exit 0
+      | ('s', Info) -> to_json game "./games/easy_score.json"; exit 0 (* TODO: give an actual name *)
+      | _ -> user_input game Board t0
     else if button  && display != Info then
       let column = index mouse_x X in
       let row = index mouse_y Y in
@@ -246,6 +255,7 @@ let rec user_input game display t0 =
         draw_stone actual_x actual_y !b_dims.radius c1;
         draw_ring actual_x actual_y c1 c2;
         prev_ring game `Remove;
+        ignore (set_game game'); (* TODO: possible threading problem based on debugging... *)
         user_input game' Board t1
       with 
       | KoException -> user_input game Board t0
@@ -255,10 +265,9 @@ let rec user_input game display t0 =
     else user_input game Info t0
 
 let main () =
-  let game = Yojson.Basic.from_file "games/standard_19.json" |> from_json in (* TODO: remove *)
+  let game = Yojson.Basic.from_file "games/9.json" |> from_json in (* TODO: remove *)
   open_graph (Printf.sprintf " %dx%d" window_size window_size);
-  set_window_title "Go";
-  set_game game;
-  user_input game Board (time ())
+  set_window_title "GOcaml";
+  user_input (set_game game) Board (time ())
 
 let () = main ()

@@ -215,7 +215,15 @@ let c_adjacent pos =
     the stone at [pos]. *)
 let pos_stones t pos = 
   if List.mem pos (stones t Black) then stones t Black 
-  else (stones t White)
+  else if List.mem pos (stones t White) then stones t White 
+  else []
+
+(** [stone_color t pos] is tjhe color of the stone at position [pos] in game 
+    [t]. *)
+let stone_color t pos = 
+  if List.mem pos (stones t Black) then Some Black 
+  else if List.mem pos (stones t White) then Some White 
+  else None
 
 (** [group t pos] is the group of stones of the same color as the stone at 
     [pos] that are adjacently-connected to [pos]. *)
@@ -238,7 +246,7 @@ let group t pos =
            not (List.mem pos !stack)) 
     in
     visited := pos :: !visited;
-    stack := !stack @ boundary; ()
+    stack := !stack @ boundary
   in
   (** [connected_r pos] is the group of stones connected to [pos]. *)
   let rec connected_r pos =
@@ -257,9 +265,6 @@ let liberties t pos =
   let all_liberties = 
     List.map (fun c -> if is_empty t c then 1 else 0) all_adjacent 
   in List.fold_left (fun acc v -> acc + v) 0 all_liberties
-
-let score t =
-  failwith "unimplemented"
 
 let ko t (c,r) = false
 (* failwith "unimplemented" *) (** TODO *)
@@ -306,13 +311,61 @@ let deduct_time t time =
       else raise TimeExpiredException
   in t_new
 
-(** [find_prisoners t] checks the board in [t] and determines if any stones were
-    captured. 
-    Raises: [SelfCaptureException] if the player who just moved is captured by 
-    their opponent (i.e. self-capture). The player should be prompted to enter a
-    new move. *)
-let find_prisoners t =
-  failwith "unimplemented"
+(** [remove_stones t s] removes all the stones in [s] from the board in [t]. *)
+let remove_stones t s =
+  let remove_cr t (c,r) = 
+    let b = match turn t with
+      | Black -> t.board.black 
+      | White -> t.board.white
+    in
+    List.filter (fun (c', r' , _) -> not (c' = c && r' = r)) b
+  in
+  let rec remove_stone t = function
+    | (c, r) :: tail -> begin
+        let board' = match turn t with
+          | White -> {t.board with white = remove_cr t (c,r)}
+          | Black -> {t.board with black = remove_cr t (c,r)}
+        in
+        let t' = {t with board = board'} 
+        in remove_stone t' tail
+      end
+    | [] -> t
+  in remove_stone t s
+
+
+(** [remove_prisoners t pos] checks the board in [t] and determines if any 
+    stones were captured from the stone placed at position [pos]. *)
+let remove_prisoners t pos =
+  let adj = List.filter 
+      (fun p -> 
+         in_bounds t p 
+         && 
+         stone_color t p = Some (turn t)
+      ) (c_adjacent pos) in
+  let groups = List.map (fun a -> (liberties t a, group t a)) adj in
+  List.fold_left 
+    (fun acc (libs, stones) -> 
+       if libs = 0 then remove_stones t stones else acc
+    ) t groups
+
+let self_sacrifice t pos = 
+  let adj = List.filter (fun p -> in_bounds t p) (c_adjacent pos) in
+  let max_adj_liberties = 
+    match list_max (List.map (fun p -> liberties t p) adj) with
+    | Some v -> v
+    | None -> 0
+  in
+  if List.fold_left (fun acc pos -> acc + liberties t pos) 0 (group t pos) = 0 
+     && 
+     max_adj_liberties > 0
+  then raise SelfCaptureException 
+  else ()
+
+let handicap t lst = 
+  let n, placements = List.fold_left (fun (n, acc) (c,r) -> (n + 1, (c, r, n) :: acc)) (1, []) lst in
+  let board' = {t.board with black = placements} in
+  let config' = {t.config with turn = 'w'} 
+  in {t with board = board'; config = config'}
 
 let new_player t time =
   let (byoyomi', game_time') = deduct_time t time in
@@ -345,11 +398,13 @@ let step t move time =
   let players' = new_players t time in
   let board' = new_board t move in
   let config' = new_config t in
-  {
+  let t' = {
     players = players';
     board = board';
     config = config'
-  }
+  } in
+  let t'' = remove_prisoners t' move in
+  self_sacrifice t'' move; t''
 
 (** [full_board t] creates an nxn matrix consisting of dots to represent an 
     empty Go board of size n. *)
@@ -370,3 +425,74 @@ let string_of_string_string_array arr =
 
 let string_of_board t =
   string_of_string_string_array (full_board t)
+
+(* Scoring  *)
+type territory = WhiteT | BlackT | Neutral | WhiteS | BlackS | Empty
+
+let score t =
+  let dim = t.board.size in
+  let grid = Array.make_matrix dim dim Empty in
+  (** [populate_grid s t] marks all the stones in [s] to [t]. *)
+  let populate_grid s territory = 
+    List.iter (fun (c, r) -> grid.(r).(c) <- territory) s
+  in
+  populate_grid (stones t Black) BlackS; populate_grid (stones t White) WhiteS;
+  let explore pos =
+    let stack = ref [pos] in
+    let visited = ref [] in
+    let boundary = ref [] in
+    let traverse pos = 
+      let adj = 
+        List.filter (fun (c, r) -> in_bounds t (c, r)) (c_adjacent pos) in
+      let stackable = 
+        List.filter 
+          (fun (c, r) -> 
+             (grid.(r).(c) != BlackS && grid.(r).(c) != WhiteS)
+             && 
+             not (List.mem (c, r) !visited)
+          ) adj in
+      let unstackable = 
+        List.filter 
+          (fun (c, r) -> 
+             (grid.(r).(c) = BlackS || grid.(r).(c) = WhiteS)
+             && 
+             not (List.mem (c, r) !visited)
+          ) adj in
+      boundary := !boundary @ unstackable;
+      visited := pos :: !visited;
+      stack := !stack @ stackable;
+    in 
+    while !stack != [] do
+      let h = List.hd !stack in (* Note: safe, as stack is not empty. *)
+      stack := List.tl !stack;
+      traverse h; 
+    done; (!visited, !boundary)
+  in
+  let has_stone lst territory = 
+    let filtered = List.filter (fun (c, r) -> grid.(r).(c) = territory) lst 
+    in List.length filtered > 0
+  in
+  let mark lst territory = 
+    List.iter (fun (c, r) -> grid.(r).(c) <- territory) lst
+  in
+  for i = 0 to Array.length grid - 1 do
+    for j = 0 to Array.length grid.(i) - 1 do 
+      let visited, boundary = explore (j, i) in
+      let has_black = has_stone boundary BlackS in
+      let has_white = has_stone boundary WhiteS in
+      let has_neutral = has_stone boundary Neutral in
+      if has_neutral then mark visited Neutral
+      else if has_black && not has_white then mark visited BlackT
+      else if not has_black && has_white then mark visited WhiteT
+    done
+  done;
+  let flattened = 
+    Array.map (fun x -> Array.to_list x) grid |> Array.to_list |> List.flatten 
+  in
+  let black = List.filter (fun e -> e = BlackT) flattened |> List.length in
+  let white = List.filter (fun e -> e = WhiteT) flattened |> List.length in
+  let b_prisoners = List.length t.players.p1.prisoners in
+  let w_prisoners = List.length t.players.p2.prisoners in
+  let komi = t.config.komi 
+  in (komi +. float_of_int (white + w_prisoners), 
+      float_of_int (black + b_prisoners))
