@@ -445,21 +445,52 @@ let rec score_helper w_grid b_grid w_score b_score (col,row)=
         score_helper w_grid b_grid w_score b_score (col,row +1 )
     | _ -> score_helper w_grid b_grid w_score b_score (col,row +1 )
 
+(**[create_grid t c f] is a board representation with [color]'s and netural 
+    territory filled with [filler] *)
+let create_grid t color filler= 
+  let grid = full_board t in 
+  fill grid color filler (0,0)
+
+let comparer w_grid b_grid grid (c,r) = 
+  let w_pos = w_grid.(c).(r) in 
+  let b_pos = b_grid.(c).(r) in 
+  match w_pos with 
+  | "w" -> if b_pos = "⋅" then grid.(c).(r) <- "w"
+  | "⋅" -> if b_pos = "b" then grid.(c).(r) <- "b"
+  | _ -> ()
+
+let rec m_t_helper  w_grid b_grid grid (c,r) = 
+  let dim = grid_dim w_grid in 
+  if r = dim then m_t_helper  w_grid b_grid grid (c +1,0)
+  else if c = dim then grid 
+  else 
+    let x = comparer  w_grid b_grid grid (c,r);
+      m_t_helper  w_grid b_grid grid (c,r+1) in 
+    x
+
+(**[mark_territories t] is a matrix representation of the territories with
+   "w"/"b" = white/black territory
+   "W"/"B" = White/Black stone
+   "⋅" = neutral territory *)
+let mark_territories t = 
+  let w_grid = create_grid t "W" "w" in 
+  let b_grid = create_grid t "B" "b" in
+  let grid = full_board t in 
+  m_t_helper  w_grid b_grid grid (0,0)
+
 let score t =
   let num_prisoners p = 
     let p1_list = p.prisoners in
     float_of_int (List.length p1_list) 
   in  
-  let grid1 = full_board t in (**grid of "W" and "B" *)
-  let grid2 = full_board t in
-  let w_grid = fill grid1 "W" "w" (0,0) in 
-  let b_grid = fill grid2 "B" "b" (0,0) in 
+  let w_grid = create_grid t "W" "w" in 
+  let b_grid = create_grid t "B" "b" in 
   let territory_score = score_helper w_grid b_grid 0. 0. (0,0) in 
   let b_score = (fst territory_score) +. num_prisoners t.players.p1 in 
   let w_score = (snd territory_score) +. num_prisoners t.players.p2 
                 +. t.config.komi in 
   (b_score, w_score)
-  
+
 let forfeit_message t = 
   if turn t = Black 
   then "Player 1 has forfeit. \nPlayer 2 has won the game!" 
