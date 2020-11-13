@@ -250,8 +250,7 @@ let liberties t pos =
     List.map (fun c -> if is_empty t c then 1 else 0) all_adjacent 
   in List.fold_left (fun acc v -> acc + v) 0 all_liberties
 
-let score t =
-  failwith "unimplemented"
+
 
 let ko go (col,row) = 
   failwith "unimplemented"
@@ -349,7 +348,120 @@ let string_of_string_string_array arr =
 let string_of_board t =
   string_of_string_string_array (full_board t)
 
+(**Scoring implementation *)
+
+let set_color (col,row) stone grid = 
+  grid.(col).(row) <- stone 
+
+let grid_dim grid = Array.length grid 
+
+(**[floodfill n b s] fills [board] with color [stone] of all other empty spaces 
+    that are reached by [(col,row)].
+    Requires: blank and stone cannot be of same color *)
+let rec floodfill grid (col,row) blank stone = 
+  let dim =  grid_dim grid in 
+  let valid_pos (c,r) =
+    c >= 0 && c < dim
+    &&
+    r >= 0 && r < dim
+  in 
+  if valid_pos (col,row) then  
+    let node_color = grid.(col).(row) in 
+    if node_color <> blank then ()
+    else begin 
+      set_color (col,row) stone grid;
+      floodfill grid (col - 1, row) blank stone;
+      floodfill grid (col + 1, row) blank stone;
+      floodfill grid (col, row - 1) blank stone;
+      floodfill grid (col, row + 1) blank stone;
+    end 
+
+(**[territory_finder g p c d] is true if [pos] is within [color]'s territory
+    or neutral territory, false otherwise. Checks in order of n e s w *)
+let rec territory_finder grid (col,row) color og_pos dir = 
+  let grid_dim = Array.length grid in 
+  let pos_color = grid.(col).(row) in 
+  match pos_color with 
+  | "W" -> if color = "W" then true 
+    else territory_finder grid og_pos color og_pos (dir + 1)
+  | "B" -> if color = "B" then true 
+    else territory_finder grid og_pos color og_pos (dir + 1) 
+  | "⋅" -> begin 
+      match dir with 
+      | 0 -> if col -1 >=0
+        then territory_finder grid (col - 1, row) color og_pos 0 
+        else territory_finder grid og_pos color og_pos 1 
+      | 1 -> if row +1 < grid_dim
+        then territory_finder grid (col, row + 1) color og_pos 1 
+        else territory_finder grid og_pos color og_pos 2 
+      | 2 -> if col +1 < grid_dim
+        then territory_finder grid (col + 1, row) color og_pos 2 
+        else territory_finder grid og_pos color og_pos 3 
+      | 3 -> if row -1 >=0
+        then territory_finder grid (col, row -1) color og_pos 3 
+        else false
+      | _ -> false 
+    end 
+  | _ ->  failwith "floodfill failed"
+
+(**[fill t g c f (col,r)] is a nxn matrix with [color]'s territory and 
+    neutral territory filled with [f]*)
+let rec fill grid c f (col,row) = 
+  let dim = Array.length grid in 
+  if row = dim then fill grid c f (col +1,0)
+  else if col = dim then grid 
+  else begin
+    let color = grid.(col).(row) in 
+    match color with 
+    | "⋅" -> begin
+        if territory_finder grid (col,row) c (col,row) 0 then 
+          (* let update_grid =  floodfill t grid (col,row) "⋅" f in  *)
+          let x = 
+            floodfill grid (col,row) "⋅" f;
+            (fill  grid c f (col,row + 1)) in 
+          x
+        else  fill  grid c f (col,row + 1)
+      end 
+    | _ -> fill  grid c f (col,row + 1)
+  end 
+
+(**[score_helper w_g b_g w_s b_s (c,r)] calculates the score of the board*)
+let rec score_helper w_grid b_grid w_score b_score (col,row)=
+  let max_dim = Array.length w_grid in 
+  if row = max_dim 
+  then score_helper w_grid b_grid w_score b_score (col+1,0)
+  else if col = max_dim then (b_score, w_score) 
+  else
+    let w_pos = w_grid.(col).(row) in 
+    let b_pos = b_grid.(col).(row) in 
+    match w_pos with 
+    | "w" -> if b_pos = "⋅" 
+      then score_helper w_grid b_grid (w_score +. 1.) b_score (col,row +1 )
+      else 
+        score_helper w_grid b_grid w_score b_score (col,row +1 )
+    | "⋅" -> if b_pos = "b" 
+      then score_helper w_grid b_grid w_score (b_score +. 1.) (col,row +1 )
+      else 
+        score_helper w_grid b_grid w_score b_score (col,row +1 )
+    | _ -> score_helper w_grid b_grid w_score b_score (col,row +1 )
+
+let score t =
+  let num_prisoners p = 
+    let p1_list = p.prisoners in
+    float_of_int (List.length p1_list) 
+  in  
+  let grid1 = full_board t in (**grid of "W" and "B" *)
+  let grid2 = full_board t in
+  let w_grid = fill grid1 "W" "w" (0,0) in 
+  let b_grid = fill grid2 "B" "b" (0,0) in 
+  let territory_score = score_helper w_grid b_grid 0. 0. (0,0) in 
+  let b_score = (fst territory_score) +. num_prisoners t.players.p1 in 
+  let w_score = (snd territory_score) +. num_prisoners t.players.p2 
+                +. t.config.komi in 
+  (b_score, w_score)
+  
 let forfeit_message t = 
   if turn t = Black 
   then "Player 1 has forfeit. \nPlayer 2 has won the game!" 
   else "Player 2 has forfeit. \nPlayer 1 has won the game!" 
+
