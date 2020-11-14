@@ -345,16 +345,22 @@ let remove_prisoners t pos =
        if libs = 0 then remove_stones t stones else acc
     ) t groups
 
+(** [opposite_adj t p] finds all the valid, non-empty adjacent positions to the 
+    group formed at position [p] (i.e. are the opposite color). *)
+let opposite_adj t pos = 
+  List.fold_left (fun acc pos -> acc @ c_adjacent pos) [] (group t pos)
+  |> List.filter (fun p -> in_bounds t p && not (is_empty t p))
+
 let self_sacrifice t pos = 
-  let adj = List.filter (fun p -> in_bounds t p) (c_adjacent pos) in
+  let opp_adj = opposite_adj t pos in
   let max_adj_liberties = 
-    match list_max (List.map (fun p -> liberties t p) adj) with
+    match list_max (List.map (fun p -> liberties t p) opp_adj) with
     | Some v -> v
     | None -> 0
   in
   if List.fold_left (fun acc pos -> acc + liberties t pos) 0 (group t pos) = 0 
      && 
-     max_adj_liberties > 0
+     max_adj_liberties > 0 (* TODO: max adjacent liberties of other color *)
   then raise SelfCaptureException 
   else ()
 
