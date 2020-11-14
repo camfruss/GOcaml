@@ -21,7 +21,7 @@ There are three required properties in the first level of the JSON file: `player
 `byoyomi` is the number of byoyomi periods remaining for that player. Once all periods are used, the player loses on time.
 `game_time` is the time remaining on that player's main time clock.
 `id` is the name of the player.
-`prisoners` is a 3-element tuple list of all the stones captured. The format of the tuple is `(col, row, cur_stones)`. The col and row represent the column and row where the stone was captured and cur_stones represents the number of stones on the board after the capture. This helps with detecting ko violations later in the game. 
+`prisoners` is the list of all the stones captured. More details are below.
 By default, player 1, or `p1`, plays with black stones and starts the game.
 
 ```
@@ -29,7 +29,17 @@ p# : {
   "byoyomi" : int,
   "game_time" : int,
   "id" : string,
-  "prisoners" : (int * int * int) list 
+  "prisoners" : prisoner list 
+}
+```
+#### Prisoner
+
+A single prisoner is represented by three fields `col`, `row`, and `cur_stones`. The `col` and `row` fields denote the column and row of the stone that was captured. The field `cur_stones` represents the number of stones on the board after the move is completed.
+```
+{
+  "col" : int,
+  "row" : int,
+  "cur_stones" : int
 }
 ```
 
