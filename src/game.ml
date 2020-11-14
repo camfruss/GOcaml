@@ -446,7 +446,7 @@ let string_of_string_string_array arr =
 let string_of_board t =
   string_of_string_string_array (full_board t)
 
-(* Scoring implementation *)
+(* Scoring implementation v1 *)
 
 let set_color (col,row) stone grid = 
   grid.(col).(row) <- stone 
@@ -673,5 +673,5 @@ let score t =
   let b_prisoners = List.length t.players.p1.prisoners in
   let w_prisoners = List.length t.players.p2.prisoners in
   let komi = t.config.komi 
-  in (komi +. float_of_int (white + w_prisoners), 
-      float_of_int (black + b_prisoners))
+  in (float_of_int (black + b_prisoners), 
+      komi +. float_of_int (white + w_prisoners))
