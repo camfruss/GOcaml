@@ -113,12 +113,9 @@ let game_tests = [
   (* Scoring Tests *)
   cmp_values "corner score" (score corner) (0.0,5.5);
   cmp_values "standard_19 score" (score standard_19) (0.0, 6.5);
-  (**has territories but no prisoners, komi zero*)
-  cmp_flt "territories score" (fst (15., 17.)) (fst (score territories)) ;
+  (** has territories but no prisoners, komi zero *)
+  cmp_flt "territories score" (fst (15., 17.)) (fst (score territories));
   cmp_flt "territories score" (snd (15., 17.)) (snd (score territories));
-
-
-
 ]
 
 let suite =

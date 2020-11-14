@@ -619,7 +619,9 @@ let explore t grid pos =
         (fun (c, r) -> 
            grid.(r).(c) = Empty
            && 
-           not (List.mem (c, r) !visited)
+           (not (List.mem (c, r) !visited))
+           &&
+           (not (List.mem (c, r) !stack))
         ) adj in
     let unstackable = 
       List.filter (fun (c, r) -> grid.(r).(c) != Empty) adj in
@@ -660,6 +662,7 @@ let fill_grid t =
         if (has_black && has_white) || has_neutral then mark visited Neutral
         else if has_black && not has_white then mark visited BlackT
         else if not has_black && has_white then mark visited WhiteT
+        else mark visited Neutral
     done
   done; grid
 
