@@ -10,8 +10,8 @@ let welcome_message =
 
   Supported Moves
   - play <position>
-    make sure the position is a single character followed by a number between 1
-    and the board size specified in the game file :)
+    make sure the position is a single uppercase letter followed by a number 
+    between 1 and the board size specified in the game file :)
   - quit
     for when you are done playing :(
   - save <filename>
@@ -24,6 +24,15 @@ let welcome_message =
 
 let exit_message = "We hope you enjoyed playing GOCaml and come back soon!"
 
+let forfeit_message game = 
+  match turn game with
+  | Black -> "Player 1 has forfeit. \nPlayer 2 has won the game!" 
+  | White -> "Player 2 has forfeit. \nPlayer 1 has won the game!" 
+
+let score_str (a,b) = 
+  "player 1: " ^ string_of_float(a) ^ "\nplayer 2: " 
+  ^ string_of_float(b)
+
 (** [play game t] manages each turn, parsing input, and displaying helpful 
     information to the terminal. [t] is the UNIX time this move started. *)
 let rec play game t0 = 
@@ -34,10 +43,11 @@ let rec play game t0 =
     let t1 = time () in
     match parse game user_input with
     | Quit -> print_endline exit_message; exit 0
-    | Pass -> failwith "unimplemented"
+    | Pass -> play (step game None 0) t1
     | Print -> print_endline (string_of_board game); play game t0
-    | Forfeit -> failwith "unimplimented"
-    | Play pos -> play (step game (istone_pos pos) (t1 - t0)) t1
+    | Score -> print_endline (score_str (score game)); play game t0
+    | Forfeit -> print_endline (forfeit_message game); exit 0
+    | Play pos -> play (step game (Some (istone_pos pos)) (t1 - t0)) t1
     | Save s -> begin
         let exists = Sys.file_exists s in 
         if not exists then to_json game s 

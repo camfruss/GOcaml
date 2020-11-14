@@ -217,7 +217,7 @@ let setup_handicap game h =
 (** [setup_stones game] draws the stones already on the board in [game]. *)
 let setup_stones game = 
   let rad = (!b_dims.spacing / 2 - 2) in
-  if stones game Black = [] then setup_handicap game 3 else (* TODO *)
+  if stones game Black = [] then setup_handicap game 5 else (* TODO *)
     (List.iter (fun (c,r) -> draw_stone_cr (c,r) rad white) (stones game White);
      List.iter (fun (c,r) -> draw_stone_cr (c,r) rad black) (stones game Black);
      prev_ring game `Draw; game)
@@ -265,8 +265,11 @@ let rec user_input game display t0 =
       | ('i', Info) -> user_input (set_game game) Board t0
       | ('i', Board) | ('i', ScoredBoard) -> 
         set_info game; user_input game Info t0
+      | ('p', Board) -> 
+        let game' = step game None t0 in
+        user_input game' Board (time ())
       | ('q', _) -> exit 0
-      | ('s', Info) -> to_json game "./games/hard_score.json"; exit 0 (* TODO *)
+      | ('s', Info) -> to_json game "./games/prisoners.json"; exit 0 (* TODO *)
       | ('s', Board) -> set_score game; user_input game ScoredBoard t0
       | ('s', ScoredBoard) -> ignore (set_game game); user_input game Board t0
       | _ -> user_input game Board t0
@@ -276,7 +279,7 @@ let rec user_input game display t0 =
       let actual_x, actual_y = coordinate column row in
       let t1 = time () in
       try
-        let game' = step game (column, row) (t1 - t0) in
+        let game' = step game (Some (column, row)) (t1 - t0) in
         let (c1,c2) = match turn game with
           | White -> white, black
           | Black -> black, white
@@ -297,7 +300,7 @@ let rec user_input game display t0 =
       | d -> user_input game d t0 
 
 let main () =
-  let game = Yojson.Basic.from_file "games/game_one.json" |> from_json in (* TODO*)
+  let game = Yojson.Basic.from_file "games/9.json" |> from_json in (* TODO*)
   open_graph (Printf.sprintf " %dx%d" window_size window_size);
   set_window_title "GOcaml";
   user_input (set_game game) Board (time ())

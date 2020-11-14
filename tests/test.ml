@@ -6,6 +6,10 @@ open OUnit2
 let cmp_values name v1 v2 = 
   name >:: (fun _ -> assert_equal v1 v2)
 
+(** [cmp_values] is an oUnit Test to determine whether [v1] equals [v2]. *)
+let cmp_flt name v1 v2 = 
+  name >:: (fun _ -> assert_equal v1 v2 ~printer: string_of_float)
+
 (** [test_raises2 n f i1 i2 e] is on OUnit Test to determine whether 
     [func i1 i2] raises [error].  *)
 let test_raises2 name func input1 input2 error = 
@@ -19,9 +23,10 @@ let load_game file =
   Yojson.Basic.from_file file |> from_json
 
 (* All the game files *)
-let standard_19 = load_game "games/standard_19.json"
+let standard_19 = load_game "games/19.json"
 let game_one = load_game "games/game_one.json"
 let corner = load_game "games/corner.json"
+let territories = load_game "games/territories.json"
 
 let command_tests = [
   (* Converting string location to integer tuple *)
@@ -104,6 +109,16 @@ let game_tests = [
   (* Is Empty Tests *)
   cmp_values "standard_19 F8 is empty" (is_empty standard_19 (5,7)) true;
   cmp_values "corner A1 is not empty" (is_empty corner (0,0)) false;
+
+  (* Scoring Tests *)
+  cmp_values "corner score" (score corner) (0.0,5.5);
+  cmp_values "standard_19 score" (score standard_19) (0.0, 6.5);
+  (**has territories but no prisoners, komi zero*)
+  cmp_flt "territories score" (fst (15., 17.)) (fst (score territories)) ;
+  cmp_flt "territories score" (snd (15., 17.)) (snd (score territories));
+
+
+
 ]
 
 let suite =

@@ -283,14 +283,12 @@ let names t =
 
 (** [n_stones] is the number of stones currently on the board in [t]. *)
 let n_stones t =
-  let p1,p2 = t.players.p1.prisoners, t.players.p2.prisoners in
-  let n_prisoners = List.length p1 + List.length p2 in
   let n_moves = function
     | Black -> max_triple3 t.board.white
     | White -> max_triple3 t.board.black
   in 
-  match n_moves (turn t) with 
-  | (_,_,n) -> n - n_prisoners
+  let _, _, max_moves = max_triple3 [(n_moves Black); (n_moves White)]
+  in max_moves
 
 let last_stone t = 
   let s = match turn t with
@@ -367,17 +365,26 @@ let handicap t lst =
   in {t with board = board'; config = config'}
 
 let new_player t time =
-  let (byoyomi', game_time') = deduct_time t time in
+  let (byoyomi, game_time) = deduct_time t time in
   let p = cur_player t in { 
-    p with byoyomi = byoyomi'; 
-           game_time = game_time';
+    p with byoyomi = byoyomi; 
+           game_time = game_time;
   }
 
-let new_players t time = 
-  let p = new_player t time in
-  match turn t with
-  | Black -> {t.players with p1 = p}
-  | White -> {t.players with p2 = p}
+let new_players t time move = 
+  let placement = match move with
+    | None -> `Pass
+    | Some pos -> `Place
+  in
+  let pn = match placement, turn t with 
+    | `Pass, Black -> {t.players.p2 with prisoners = n_stones t :: t.players.p2.prisoners}
+    | `Pass, White -> {t.players.p1 with prisoners = n_stones t :: t.players.p1.prisoners}
+    | `Place, Black -> new_player t time
+    | `Place, White -> new_player t time
+  in 
+  match move, turn t with
+  | None, Black | Some _, White -> {t.players with p2 = pn}
+  | None, White | Some _, Black -> {t.players with p1 = pn}
 
 (** [new_board t m] is the updated board for [t] after move [m]. *)
 let new_board t (c,r) = 
@@ -389,21 +396,29 @@ let new_board t (c,r) =
     | Black -> {t.board with black = move' :: t.board.black}
     | White -> {t.board with white = move' :: t.board.white}
 
+(** [new_config t] is the updated configuration for [t]. This updates the 
+    player's turn. *)
 let new_config t = 
   let turn' = if (turn t) = Black then 'w' else 'b' in
   {t.config with turn = turn'}
 
 let step t move time = 
-  let players' = new_players t time in
-  let board' = new_board t move in
+  let board' = match move with 
+    | None -> t.board
+    | Some pos -> new_board t pos 
+  in
+  let players' = new_players t time move in
   let config' = new_config t in
   let t' = {
     players = players';
     board = board';
     config = config'
   } in
-  let t'' = remove_prisoners t' move in
-  self_sacrifice t'' move; t''
+  match move with
+  | None -> t'
+  | Some p -> 
+    let t'' = remove_prisoners t' p in
+    self_sacrifice t'' p; t''
 
 (** [full_board t] creates an nxn matrix consisting of dots to represent an 
     empty Go board of size n. *)
@@ -424,6 +439,149 @@ let string_of_string_string_array arr =
 
 let string_of_board t =
   string_of_string_string_array (full_board t)
+
+(* Scoring implementation *)
+
+let set_color (col,row) stone grid = 
+  grid.(col).(row) <- stone 
+
+let grid_dim grid = Array.length grid 
+
+(**[floodfill n b s] fills [board] with color [stone] of all other empty spaces 
+    that are reached by [(col,row)].
+    Requires: blank and stone cannot be of same color *)
+let rec floodfill grid (col,row) blank stone = 
+  let dim =  grid_dim grid in 
+  let valid_pos (c,r) =
+    c >= 0 && c < dim
+    &&
+    r >= 0 && r < dim
+  in 
+  if valid_pos (col,row) then  
+    let node_color = grid.(col).(row) in 
+    if node_color <> blank then ()
+    else begin 
+      set_color (col,row) stone grid;
+      floodfill grid (col - 1, row) blank stone;
+      floodfill grid (col + 1, row) blank stone;
+      floodfill grid (col, row - 1) blank stone;
+      floodfill grid (col, row + 1) blank stone;
+    end 
+
+(**[territory_finder g p c d] is true if [pos] is within [color]'s territory
+    or neutral territory, false otherwise. Checks in order of n e s w *)
+let rec territory_finder grid (col,row) color og_pos dir = 
+  let grid_dim = Array.length grid in 
+  let pos_color = grid.(col).(row) in 
+  match pos_color with 
+  | "W" -> if color = "W" then true 
+    else territory_finder grid og_pos color og_pos (dir + 1)
+  | "B" -> if color = "B" then true 
+    else territory_finder grid og_pos color og_pos (dir + 1) 
+  | "⋅" -> begin 
+      match dir with 
+      | 0 -> if col -1 >=0
+        then territory_finder grid (col - 1, row) color og_pos 0 
+        else territory_finder grid og_pos color og_pos 1 
+      | 1 -> if row +1 < grid_dim
+        then territory_finder grid (col, row + 1) color og_pos 1 
+        else territory_finder grid og_pos color og_pos 2 
+      | 2 -> if col +1 < grid_dim
+        then territory_finder grid (col + 1, row) color og_pos 2 
+        else territory_finder grid og_pos color og_pos 3 
+      | 3 -> if row -1 >=0
+        then territory_finder grid (col, row -1) color og_pos 3 
+        else false
+      | _ -> false 
+    end 
+  | _ ->  failwith "floodfill failed"
+
+(**[fill t g c f (col,r)] is a nxn matrix with [color]'s territory and 
+    neutral territory filled with [f]*)
+let rec fill grid c f (col,row) = 
+  let dim = Array.length grid in 
+  if row = dim then fill grid c f (col +1,0)
+  else if col = dim then grid 
+  else begin
+    let color = grid.(col).(row) in 
+    match color with 
+    | "⋅" -> begin
+        if territory_finder grid (col,row) c (col,row) 0 then 
+          (* let update_grid =  floodfill t grid (col,row) "⋅" f in  *)
+          let x = 
+            floodfill grid (col,row) "⋅" f;
+            (fill  grid c f (col,row + 1)) in 
+          x
+        else  fill  grid c f (col,row + 1)
+      end 
+    | _ -> fill  grid c f (col,row + 1)
+  end 
+
+(**[score_helper w_g b_g w_s b_s (c,r)] calculates the score of the board*)
+let rec score_helper w_grid b_grid w_score b_score (col,row)=
+  let max_dim = Array.length w_grid in 
+  if row = max_dim 
+  then score_helper w_grid b_grid w_score b_score (col+1,0)
+  else if col = max_dim then (b_score, w_score) 
+  else
+    let w_pos = w_grid.(col).(row) in 
+    let b_pos = b_grid.(col).(row) in 
+    match w_pos with 
+    | "w" -> if b_pos = "⋅" 
+      then score_helper w_grid b_grid (w_score +. 1.) b_score (col,row +1 )
+      else 
+        score_helper w_grid b_grid w_score b_score (col,row +1 )
+    | "⋅" -> if b_pos = "b" 
+      then score_helper w_grid b_grid w_score (b_score +. 1.) (col,row +1 )
+      else 
+        score_helper w_grid b_grid w_score b_score (col,row +1 )
+    | _ -> score_helper w_grid b_grid w_score b_score (col,row +1 )
+
+(**[create_grid t c f] is a board representation with [color]'s and netural 
+    territory filled with [filler] *)
+let create_grid t color filler= 
+  let grid = full_board t in 
+  fill grid color filler (0,0)
+
+let comparer w_grid b_grid grid (c,r) = 
+  let w_pos = w_grid.(c).(r) in 
+  let b_pos = b_grid.(c).(r) in 
+  match w_pos with 
+  | "w" -> if b_pos = "⋅" then grid.(c).(r) <- "w"
+  | "⋅" -> if b_pos = "b" then grid.(c).(r) <- "b"
+  | _ -> ()
+
+let rec m_t_helper  w_grid b_grid grid (c,r) = 
+  let dim = grid_dim w_grid in 
+  if r = dim then m_t_helper  w_grid b_grid grid (c +1,0)
+  else if c = dim then grid 
+  else 
+    let x = comparer  w_grid b_grid grid (c,r);
+      m_t_helper  w_grid b_grid grid (c,r+1) in 
+    x
+
+(**[mark_territories t] is a matrix representation of the territories with
+   "w"/"b" = white/black territory
+   "W"/"B" = White/Black stone
+   "⋅" = neutral territory *)
+let mark_territories t = 
+  let w_grid = create_grid t "W" "w" in 
+  let b_grid = create_grid t "B" "b" in
+  let grid = full_board t in 
+  m_t_helper  w_grid b_grid grid (0,0)
+
+let score t =
+  let num_prisoners p = 
+    let p1_list = p.prisoners in
+    float_of_int (List.length p1_list) 
+  in  
+  let w_grid = create_grid t "W" "w" in 
+  let b_grid = create_grid t "B" "b" in 
+  let territory_score = score_helper w_grid b_grid 0. 0. (0,0) in 
+  let b_score = (fst territory_score) +. num_prisoners t.players.p1 in 
+  let w_score = (snd territory_score) +. num_prisoners t.players.p2 
+                +. t.config.komi in 
+  (b_score, w_score)
 
 (* MARK: - Scoring  Implementation v2 *)
 
