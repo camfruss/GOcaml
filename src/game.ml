@@ -426,15 +426,35 @@ let step t move time =
     let t'' = remove_prisoners t' p in
     self_sacrifice t'' p; t''
 
+(** [create_labels d a c acc] *)
+let rec create_labels dim alph counter acc= 
+  if counter = dim then List.rev acc 
+  else 
+    match alph with 
+    | true -> let v = Char.escaped (Char.chr (counter + 64)) in 
+      create_labels dim alph (counter + 1) (v :: acc)
+    | false ->if counter >= 10 then let v = string_of_int counter in 
+        create_labels dim alph (counter + 1) (v :: acc)
+      else let v = " " ^ string_of_int counter   in 
+        create_labels dim alph (counter + 1) (v :: acc)
+
 (** [full_board t] creates an nxn matrix consisting of dots to represent an 
     empty Go board of size n. *)
 let full_board t = 
-  let dim = t.board.size in 
+  let dim = t.board.size + 1 in 
   let grid = Array.make_matrix dim dim "⋅" in
+  let rec add_labels (x,y) alph = function 
+    | h :: t -> grid.(x).(y) <- h; if alph then add_labels (x,y + 1) alph t
+      else  add_labels (x + 1,y) alph t
+    | [] -> () in 
   let rec add_stones rep = function 
-    | (c, r, _) :: t -> grid.(r).(c) <- rep; add_stones rep t
+    | (c, r, _) :: t -> grid.(r+ 1).(c+1) <- rep; add_stones rep t
     | [] -> ()
-  in add_stones "W" t.board.white; add_stones "B" t.board.black; grid
+  in add_stones "W" t.board.white; add_stones "B" t.board.black; 
+  add_labels (0,0) true (create_labels dim true 0 []); 
+  add_labels (0,0) false (create_labels dim false 0 []);
+  grid.(0).(0) <- "  ";
+  grid
 
 let string_of_string_array arr =  
   String.concat " " (Array.to_list arr)
