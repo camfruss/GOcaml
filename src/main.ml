@@ -21,6 +21,8 @@ let welcome_message =
     to print the stones currently on the board
   - score
     to print the current score 
+  - undo
+    to undo the previous player's move
 
   If you ever want to quit the terminal, press ^D (control D).
   |}
