@@ -27,6 +27,7 @@ let standard_19 = load_game "games/19.json"
 let game_one = load_game "games/game_one.json"
 let corner = load_game "games/corner.json"
 let territories = load_game "games/territories.json"
+let empty5 = load_game "games/5.json"
 
 let command_tests = [
   (* Converting string location to integer tuple *)
@@ -41,6 +42,9 @@ let command_tests = [
   cmp_values "pass is Pass" (parse standard_19 "pass") Pass;
   cmp_values "save file.json is Save 'file.json'" 
     (parse standard_19 "save file.json") (Save "file.json");
+  cmp_values "score is Score" (parse standard_19 "score") Score;
+  cmp_values "score is Score" (parse standard_19 "print") Print;
+
 
   (* Parse Exception Tests *)
   test_raises2 "Deformed Exception" parse standard_19 "pLaY A2" Deformed;
@@ -116,6 +120,13 @@ let game_tests = [
   (** has territories but no prisoners, komi zero *)
   cmp_flt "territories score" (fst (15., 17.)) (fst (score territories));
   cmp_flt "territories score" (snd (15., 17.)) (snd (score territories));
+
+  (*Last stone tests *)
+  cmp_values "empty board" (-1,-1) (last_stone empty5); 
+  cmp_values "place a stone at (1,1)" (1,1) 
+    (last_stone (step standard_19 (Some (1,1)) 1));
+  cmp_values "empty board, None move" (-1,-1) 
+    (last_stone (step standard_19 None 1));
 ]
 
 let suite =

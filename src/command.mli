@@ -21,7 +21,8 @@ exception StoneAlreadyExists
     - Forfeit
     - Save the current game to the file specified 
     - Quit will quit the game application 
-    - Print will print the current contents of the board *)
+    - Print will print the current contents of the board 
+    - Score prints the current score of each player *)
 type command = 
   | Pass
   | Play of string
