@@ -2,6 +2,7 @@ open Command
 open Game
 open Util
 
+
 let welcome_message = 
   {|
   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
@@ -18,6 +19,8 @@ let welcome_message =
     for when you are done playing but want to save your current progress
   - print
     to print the stones currently on the board
+  - score
+    to print the current score 
 
   If you ever want to quit the terminal, press ^D (control D).
   |}
@@ -56,25 +59,36 @@ let rec play game t0 =
       end
   with 
   | Empty -> 
-    print_endline "You didn't type anything! Try again!"; play game t0
+    ANSITerminal.(print_string [red] "You didn't type anything! Try again! \n"); 
+    play game t0
   | Deformed -> 
-    print_endline "That's not a valid command!"; play game t0
+    ANSITerminal.(print_string [red] "That's not a valid command! \n");
+    play game t0
   | GoOutOfBounds ->
-    print_endline "The position is out of the game bounds"; play game t0
+    ANSITerminal.(
+      print_string [red] "The position is out of the game bounds \n"); 
+    play game t0
   | StoneAlreadyExists ->
-    print_endline "A stone already exists in that location."; play game t0
+    ANSITerminal.(
+      print_string [red]"A stone already exists in that location. \n");
+    play game t0
 
 (** [main] prompts for the game to play, then starts it. *)
 let main () =
-  print_endline welcome_message;
-  print_string "Please enter the name of the game file you wish to load.\n> ";
+  ANSITerminal.(
+    print_string [green] welcome_message;
+    print_string [green]
+      "Please enter the name of the game file you wish to load.";
+    print_string [default] "\n>");
   let rec init () = 
     match read_line () with
     | exception End_of_file -> ()
     | f ->
       try play (Yojson.Basic.from_file f |> from_json) (time ()) with 
       | Sys_error _ -> 
-        print_string "Please enter a valid GOCaml file.\n> "; init ()
+        ANSITerminal.
+          (print_string [red] "Please enter a valid GOCaml file." ;
+           print_string [default] "\n> "); init ()
   in init ()
 
 let () = main ()
