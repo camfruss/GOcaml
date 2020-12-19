@@ -437,56 +437,88 @@ let undo_white_helper t =
   let (c, r, prev_pris) = List.hd t.players.p2.prisoners in 
   let prisoners = 
     List.filter (fun (c,r,a) -> a <> prev_pris) t.players.p2.prisoners in 
-  let p2' = {t.players.p2 with prisoners = prisoners} in 
-  let players' = {t.players with p2 = p2'} in 
-  let board' = {t.board with white = List.tl t.board.white} in 
   let freed = 
     List.filter (fun (c,r,a) -> a = prev_pris) t.players.p2.prisoners in 
-  let board'' = {board' with black = freed @ t.board.black} in 
+  let p2' = {t.players.p2 with prisoners = prisoners} in 
+  let players' = {t.players with p2 = p2'} in 
+  let board' = 
+    (* {t.board with white = List.tl t.board.white}  *)
+    {
+      size = t.board.size;
+      black = freed @ t.board.black;
+      white = List.tl t.board.white
+    }
+  in 
+  (* let board'' = {board' with black = freed @ t.board.black} in  *)
   let config' = new_config t in 
   {
     players = players';
-    board = board'';
+    board = board';
     config = config'
   }
 
 (**[undo_black_helper t] is the game at the start of black's last turn in [t]*)
 let undo_black_helper t =
-  let (c, r, prev_pris) = List.hd t.players.p1.prisoners in 
+  let c, r, prev_pris = List.hd t.players.p1.prisoners in 
   let prisoners = 
     List.filter (fun (c,r,a) -> a <> prev_pris) t.players.p1.prisoners in 
-  let p1' = {t.players.p1 with prisoners = prisoners} in 
-  let players' = {t.players with p1 = p1'} in 
-  let board' = {t.board with black = List.tl t.board.black} in
   let freed = 
     List.filter (fun (c,r,a) -> a = prev_pris) t.players.p1.prisoners in
-  let board'' = {board' with white = freed @ t.board.white} in 
+  let p1' = {t.players.p1 with prisoners = prisoners} in 
+  let players' = {t.players with p1 = p1'} in 
+  let board' = 
+    {
+      size = t.board.size;
+      black = List.tl t.board.black;
+      white = freed @ t.board.white
+    }
+  in 
   let config' = new_config t in 
   {
     players = players';
-    board = board'';
+    board = board';
     config = config'
   }
 
-let undo t time = 
-  let w_curr = 
-    match t.board.white with 
-    | [] -> 0
-    | (c, r, curr) :: t -> curr in 
-  let b_curr = 
-    match t.board.black with 
-    | [] -> 0
-    | (c, r, curr) :: t -> curr in
-  let combined = match turn t with
-    | White -> (b_curr, w_curr)
-    | Black -> (w_curr, b_curr) in 
-  let curr = fst combined in 
-  let prev = snd combined in 
-  match turn t, (curr > prev) with 
-  | White, true -> remove_stones t [(last_stone t)]
-  | White, false -> undo_black_helper t 
-  | Black, true -> remove_stones t [(last_stone t)]
-  | Black, false -> undo_white_helper t 
+(**[black_helper] is the game at the start of black's last turn in [t],
+    handles the case where it is black's first turn *)
+let black_helper t = 
+  if List.length t.board.white = 0 then 
+    (print_endline "cannot undo first move"; t )
+  else 
+    let board' = {t.board with white = List.tl t.board.white} in
+    let config' = new_config t in 
+    { players = t.players; board = board'; config = config'}
+
+(**[get_curr_stone lst] is the current number of stones on the board according 
+    to [lst] *)
+let get_curr_stone = function
+  | [] -> None 
+  | (c,r,curr) :: t -> Some curr 
+
+(**[captured t] is true if stones were captured last turn in game [t]*)
+let captured t = 
+  let w_board = get_curr_stone t.board.white in 
+  let b_board = get_curr_stone t.board.black in 
+  let w_pris = get_curr_stone t.players.p1.prisoners in 
+  let b_pris = get_curr_stone t.players.p2.prisoners in 
+  let compare_curr prev_p curr_b = 
+    if curr_b = prev_p then true else false 
+  in 
+  match turn t with 
+  | Black -> compare_curr b_pris w_board
+  | White -> compare_curr w_pris b_board 
+
+let undo t  = 
+  match turn t, captured t with 
+  | White, false ->
+    let board' = {t.board with black = List.tl t.board.black} in
+    let config' = new_config t in 
+    { players = t.players; board = board'; config = config'}
+  | White, true -> undo_black_helper t 
+  | Black, false -> black_helper t 
+  | Black, true ->if List.length t.board.white = 0 then black_helper t 
+    else undo_white_helper t 
 
 (** [create_labels d a c acc] if [alph] is true it is the alphabetic labels
       for a board of size [dim], else, it is the numberic labels 
