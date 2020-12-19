@@ -432,7 +432,65 @@ let step t move time =
     let t'' = remove_prisoners t' p in
     self_sacrifice t'' p; t''
 
-(** [create_labels d a c acc] *)
+(**[undo_white_helper t] is the game at the start of white's last turn in [t] *)
+let undo_white_helper t =
+  let (c, r, prev_pris) = List.hd t.players.p2.prisoners in 
+  let prisoners = 
+    List.filter (fun (c,r,a) -> a <> prev_pris) t.players.p2.prisoners in 
+  let p2' = {t.players.p2 with prisoners = prisoners} in 
+  let players' = {t.players with p2 = p2'} in 
+  let board' = {t.board with white = List.tl t.board.white} in 
+  let freed = 
+    List.filter (fun (c,r,a) -> a = prev_pris) t.players.p2.prisoners in 
+  let board'' = {board' with black = freed @ t.board.black} in 
+  let config' = new_config t in 
+  {
+    players = players';
+    board = board'';
+    config = config'
+  }
+
+(**[undo_black_helper t] is the game at the start of black's last turn in [t]*)
+let undo_black_helper t =
+  let (c, r, prev_pris) = List.hd t.players.p1.prisoners in 
+  let prisoners = 
+    List.filter (fun (c,r,a) -> a <> prev_pris) t.players.p1.prisoners in 
+  let p1' = {t.players.p1 with prisoners = prisoners} in 
+  let players' = {t.players with p1 = p1'} in 
+  let board' = {t.board with black = List.tl t.board.black} in
+  let freed = 
+    List.filter (fun (c,r,a) -> a = prev_pris) t.players.p1.prisoners in
+  let board'' = {board' with white = freed @ t.board.white} in 
+  let config' = new_config t in 
+  {
+    players = players';
+    board = board'';
+    config = config'
+  }
+
+let undo t time = 
+  let w_curr = 
+    match t.board.white with 
+    | [] -> 0
+    | (c, r, curr) :: t -> curr in 
+  let b_curr = 
+    match t.board.black with 
+    | [] -> 0
+    | (c, r, curr) :: t -> curr in
+  let combined = match turn t with
+    | White -> (b_curr, w_curr)
+    | Black -> (w_curr, b_curr) in 
+  let curr = fst combined in 
+  let prev = snd combined in 
+  match turn t, (curr > prev) with 
+  | White, true -> remove_stones t [(last_stone t)]
+  | White, false -> undo_black_helper t 
+  | Black, true -> remove_stones t [(last_stone t)]
+  | Black, false -> undo_white_helper t 
+
+(** [create_labels d a c acc] if [alph] is true it is the alphabetic labels
+      for a board of size [dim], else, it is the numberic labels 
+      Ex. [create_labels 3 false 0 []] is [["0";"1";"2"]] *)
 let rec create_labels dim alph counter acc= 
   if counter = dim then List.rev acc 
   else 
@@ -459,8 +517,7 @@ let full_board t =
   in add_stones "W" t.board.white; add_stones "B" t.board.black; 
   add_labels (0,0) true (create_labels dim true 0 []); 
   add_labels (0,0) false (create_labels dim false 0 []);
-  grid.(0).(0) <- "  ";
-  grid
+  grid.(0).(0) <- "  "; grid
 
 let string_of_string_array arr =  
   String.concat " " (Array.to_list arr)

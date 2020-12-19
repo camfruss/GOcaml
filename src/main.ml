@@ -21,6 +21,8 @@ let welcome_message =
     to print the stones currently on the board
   - score
     to print the current score 
+  - undo
+    to undo the previous player's move
 
   If you ever want to quit the terminal, press ^D (control D).
   |}
@@ -51,6 +53,7 @@ let rec play game t0 =
     | Score -> print_endline (score_str (score game)); play game t0
     | Forfeit -> print_endline (forfeit_message game); exit 0
     | Play pos -> play (step game (Some (istone_pos pos)) (t1 - t0)) t1
+    | Undo -> play (undo game t0) t0 
     | Save s -> begin
         let exists = Sys.file_exists s in 
         if not exists then to_json game s 
