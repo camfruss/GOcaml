@@ -22,9 +22,9 @@ exception StoneAlreadyExists
     - Save the current game to the file specified 
     - Quit will quit the game application 
     - Print will print the current contents of the board 
-    - Score will print the current score of the board 
+    - Score prints the current score of each player
     - Undo restore the game to the beginning of the previous player's turn
-        excluding time *)
+        excluding time*)
 type command = 
   | Pass
   | Play of string
