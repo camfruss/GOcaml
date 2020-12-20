@@ -183,7 +183,7 @@ let game_tests = [
   cmp_values "place a stone at (1,1)" (1,1) 
     (last_stone (step empty_19 (Some (1,1)) 1));
   cmp_values "empty board, None move" (-1,-1) 
-    (last_stone (step empty_19 None 1)); (* <- TODO: crashing *)
+    (last_stone (step empty_19 None 1));
 
   (* Handicap tests *)
   cmp_values "star_location, empty_7" (star_locations empty_7) (2, 4, 3);

@@ -382,7 +382,7 @@ let self_sacrifice t pos =
   in
   if List.fold_left (fun acc pos -> acc + liberties t pos) 0 (group t pos) = 0 
      && 
-     max_adj_liberties > 0 (* TODO: max adjacent liberties of other color *)
+     max_adj_liberties > 0
   then raise SelfCaptureException 
   else ()
 

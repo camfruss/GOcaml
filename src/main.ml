@@ -35,22 +35,18 @@ let forfeit_message game =
   | Black -> "Player 1 has forfeit. \nPlayer 2 has won the game!" 
   | White -> "Player 2 has forfeit. \nPlayer 1 has won the game!" 
 
+let board_size_message = 
+  "Please choose from these board sizes: [5, 7, 9, 11, 13, 19]"
+
 let score_str (a, b) = 
   "player 1: " ^ string_of_float(a) ^ "\nplayer 2: " ^ string_of_float(b)
-
-(** TODO *)
-let print color message = 
-  ANSITerminal.(print_string [color] message)
-
-(** TODO *)
-let board_size_message = 
-  "Please choose from these board sizes: [5,7,9,11,13,19]"
 
 (** [play game t] manages each turn, parsing input, and displaying helpful 
     information to the terminal. [t] is the UNIX time this move started. *)
 let rec play game t0 = 
   let name = if turn game = White then "W" else "B" in
   print_string (name ^ " > ");
+  let open ANSITerminal in
   let user_input = read_line () in 
   try 
     let t1 = time () in
@@ -70,53 +66,55 @@ let rec play game t0 =
       end
   with 
   | Empty -> 
-    print ANSITerminal.red "You didn't type anything! Try again! \n"; 
+    print_string [red] "You didn't type anything! Try again! \n"; 
     play game t0
   | Deformed -> 
-    print ANSITerminal.red "That's not a valid command! \n";
+    print_string [red] "That's not a valid command! \n";
     play game t0
   | GoOutOfBounds ->
-    print ANSITerminal.red "The position is out of the game bounds \n"; 
+    print_string [red] "The position is out of the game bounds \n"; 
     play game t0
   | StoneAlreadyExists ->
-    print ANSITerminal.red "A stone already exists in that location. \n";
+    print_string [red] "A stone already exists in that location. \n";
     play game t0
   | KoException -> 
-    ANSITerminal.(
-      print_string [red]
-        "You cannot place a stone here. The move causes a Ko violation. \n");
+    print_string [red]
+      "You cannot place a stone here. The move causes a Ko violation. \n";
     play game t0
   | SelfCaptureException -> 
-    ANSITerminal.(
-      print_string [red]
-        "You cannot play there. That would cause a Self Capture \n");
+    print_string [red] 
+      "You cannot play there. That would cause a Self Capture \n";
     play game t0
   | GameEndException -> 
     let p1_score = fst (score game) in 
     let p2_score = snd (score game) in 
-    let winner = if p1_score > p2_score then fst (names game) else snd (names game) in
-    print ANSITerminal.blue 
+    let winner = 
+      if p1_score > p2_score then fst (names game) 
+      else snd (names game) 
+    in
+    print_string [blue]
       ("Two playes have passed, the game is now over!\nThe winner is " 
        ^ winner ^ "\nPlayer1: " ^ string_of_float p1_score ^ "\nPlayer2: " 
        ^ string_of_float p2_score ^ "\n");
     exit 0
 
 (** [main] prompts for the game to play, then starts it. *)
-let main () =
-  ANSITerminal.(
-    print_string [green] welcome_message;
-    print_string [cyan]
-      "Would you like to play a [new] game or [load] saved game?";
-    print_string [default] "\n> ");
+let main () = let open ANSITerminal in
+  print_string [green] welcome_message;
+  print_string [cyan] 
+    "Would you like to play a [new] game or [load] saved game?";
+  print_string [default] "\n> ";
   let rec init () = 
     match read_line () with
     | exception End_of_file -> ()
     | f ->
-      try play (Yojson.Basic.from_file f |> from_json) (time ()) with 
+      try 
+        play (Yojson.Basic.from_file f |> from_json) (time ()) 
+      with 
       | Sys_error _ -> 
-        ANSITerminal.
-          (print_string [red] "Please enter a valid GOCaml file." ;
-           print_string [default] "\n> "); init ()
+        print_string [red] "Please enter a valid GOCaml file.";
+        print_string [default] "\n> ";
+        init ()
   in
   let rec new_game () = 
     match read_line () with 
@@ -124,30 +122,33 @@ let main () =
     | f -> 
       match  int_of_string_opt f with 
       | None -> 
-        ANSITerminal.
-          (print_string [red] board_size_message;
-           print_string [default] "\n> "); new_game ()
+        print_string [red] board_size_message;
+        print_string [default] "\n> "; 
+        new_game ()
       | Some i -> 
         if List.mem i [5; 7; 9; 11; 13; 19] then 
           let game_file = "games/" ^ string_of_int i ^ ".json" in 
           play (Yojson.Basic.from_file game_file |> from_json) (time ())
-        else ANSITerminal.
-               (print_string [red] board_size_message;
-                print_string [default] "\n> "); new_game ()
+        else 
+          (print_string [red] board_size_message;
+           print_string [default] "\n> "; 
+           new_game ())
   in 
   let rec new_load () =
     match read_line () with
-    | exception End_of_file -> print_endline "oops"; ()
-    | "new" -> ANSITerminal.
-                 (print_string [cyan] board_size_message;
-                  print_string [default] "\n> "); new_game ()
-    | "load" -> ANSITerminal.
-                  (print_string [cyan] 
-                     "Please enter GOcaml file name.";
-                   print_string [default] "\n> "); init ()
-    | f ->  ANSITerminal.
-              (print_string [red] "Please choose 'new' or 'load'.";
-               print_string [default] "\n> "); new_load ()
+    | exception End_of_file -> print_endline "EOF Exception"; ()
+    | "new" -> 
+      print_string [cyan] board_size_message;
+      print_string [default] "\n> ";
+      new_game ()
+    | "load" -> 
+      print_string [cyan] "Please enter GOcaml file name.";
+      print_string [default] "\n> ";
+      init ()
+    | f -> 
+      print_string [red] "Please choose 'new' or 'load'.";
+      print_string [default] "\n> "; 
+      new_load ()
   in 
   new_load ()
 
