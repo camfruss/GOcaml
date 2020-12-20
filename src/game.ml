@@ -9,6 +9,8 @@ exception StoneAlreadyExistsException
 
 exception TimeExpiredException
 
+exception GameEndException
+
 type stone = Black | White
 
 (** [player] is the type representing a single player in a go game. *)
@@ -272,9 +274,6 @@ let liberties t pos =
     List.map (fun c -> if is_empty t c then 1 else 0) all_adjacent 
   in List.fold_left (fun acc v -> acc + v) 0 all_liberties
 
-let ko t (c,r) = false
-(* failwith "unimplemented" *) (* TODO *)
-
 let turn t =
   if t.config.turn = 'b' then Black else White
 
@@ -435,23 +434,39 @@ let new_config t =
   let turn' = if (turn t) = Black then 'w' else 'b' in
   {t.config with turn = turn'}
 
+(**[game end t] checks to see if the last prisoner in the players turn was due 
+   to a 'pass' command. This is used in determining the GameEndException *)
+let game_end t = 
+  let num_stones  = n_stones t in 
+  let p = if (turn t) = Black then lst_head_h t.players.p1.prisoners else
+      lst_head_h t.players.p2.prisoners in
+  let p_curr_stone = match p with 
+    | (_,_,l) -> l
+  in 
+  let p_pos = match p with 
+    | (x,y,_) -> (x,y)
+  in 
+  (-1,-1) = p_pos && (num_stones = p_curr_stone) 
+
+
 let step t move time = 
-  let board' = match move with 
-    | None -> t.board
-    | Some pos -> new_board t pos 
-  in
-  let players' = new_players t time move in
-  let config' = new_config t in
-  let t' = {
-    players = players';
-    board = board';
-    config = config'
-  } in
-  match move with
-  | None -> t'
-  | Some p -> 
-    let t'' = remove_prisoners t' p in
-    self_sacrifice t'' p; t''
+  if move = None && game_end t then raise GameEndException else 
+    let board' = match move with 
+      | None -> t.board
+      | Some pos -> new_board t pos 
+    in
+    let players' = new_players t time move in
+    let config' = new_config t in
+    let t' = {
+      players = players';
+      board = board';
+      config = config'
+    } in
+    match move with
+    | None -> t'
+    | Some p -> 
+      let t'' = remove_prisoners t' p in
+      self_sacrifice t'' p; t''
 
 (** [create_labels d a c acc] *)
 let rec create_labels dim alph counter acc= 
