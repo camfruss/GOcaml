@@ -758,3 +758,4 @@ let game_message t =
     string_of_float score1], 
    ["Player 2"; name2; "White"; time2; stones2; byo2; string_of_float komi; 
     terr2; pris2; string_of_float score2])
+[@@coverage off]
