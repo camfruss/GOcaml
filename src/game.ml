@@ -450,23 +450,22 @@ let game_end t =
 
 
 let step t move time = 
-  if move = None && game_end t then raise GameEndException else 
-    let board' = match move with 
-      | None -> t.board
-      | Some pos -> new_board t pos 
-    in
-    let players' = new_players t time move in
-    let config' = new_config t in
-    let t' = {
-      players = players';
-      board = board';
-      config = config'
-    } in
-    match move with
-    | None -> t'
-    | Some p -> 
-      let t'' = remove_prisoners t' p in
-      self_sacrifice t'' p; t''
+  let board' = match move with 
+    | None -> t.board
+    | Some pos -> new_board t pos 
+  in
+  let players' = new_players t time move in
+  let config' = new_config t in
+  let t' = {
+    players = players';
+    board = board';
+    config = config'
+  } in
+  match move with
+  | None ->if game_end t then raise GameEndException else t'
+  | Some p -> 
+    let t'' = remove_prisoners t' p in
+    self_sacrifice t'' p; t''
 
 (**[undo_white_helper t] is the game at the start of white's last turn in [t] *)
 let undo_white_helper t =
@@ -829,3 +828,8 @@ let score t =
   let komi = t.config.komi 
   in (float_of_int (black + b_prisoners), 
       komi +. float_of_int (white + w_prisoners))
+
+let player_names t = 
+  let p1_name = t.players.p1.id in 
+  let p2_name = t.players.p2.id in 
+  (p1_name, p2_name)

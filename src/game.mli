@@ -97,3 +97,8 @@ val fill_grid : t -> intersection array array
 (**[undo t ] reverts to the game at beginning of the previous
     player's turn excluding time.  *)
 val undo : t -> t 
+
+(** [player_names] returns a tuple with the first value representing the player
+     id of player one and the second value representing the player id of player
+     two. *)
+val player_names : t -> (string * string)
