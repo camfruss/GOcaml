@@ -35,3 +35,12 @@ let list_max = function
   | h :: t -> 
     Some (List.fold_left (fun acc x -> if x > acc then x else acc) h t)
   | [] -> None
+
+let random_string len = 
+  let rec gen acc n = 
+    if n = 0 then acc
+    else 
+      let rand = 97 + Random.int 26 in
+      let char = Char.chr rand |> Char.escaped in
+      gen (acc ^ char) (n - 1)
+  in gen "" len

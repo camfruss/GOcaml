@@ -24,3 +24,6 @@ val time : unit -> int
 
 (** [list_max lst] is the maximum element in [lst]. *)
 val list_max : 'a list -> 'a option
+
+(** [random_string len] is a random lowercase string of lenght [len]. *)
+val random_string : int -> string

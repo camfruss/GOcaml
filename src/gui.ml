@@ -6,6 +6,10 @@ open Util
     the Go board. *)
 let window_size = 800
 
+(** [background_color] is the default background color for the graphical user 
+    interface. *)
+let background_color = rgb 235 195 120
+
 (** [axis] represents the columns [X] and rows [Y] of the Go board. This is
     necessary becuase the Graphics module considers (0,0) to be in the bottom 
     left, but our implementation has (0,0) in the top left, meaning only the Y 
@@ -13,8 +17,24 @@ let window_size = 800
 type axis = X | Y
 
 (** [display] represents the type of the contents currently being shown on the 
-    window. *)
-type display = LoadGame | Handicap | Info | Board | ScoredBoard
+    window. 
+    Main: the home page, allowing users to play the game or read info
+    LoadGame: where the user can choose to play a new or existing game
+    BoardSize: where the user selects the board size for a new game
+    Handicap: where the user selects the handicap for a new game
+    FileLoad: where a user inputs a game file to load as an existing game
+    Board: the current game state
+    ScoredBoard: the current game state with each intersection scored
+    Info: the info about the current game *)
+type display = 
+  | Main
+  | LoadGame 
+  | BoardSize
+  | Handicap
+  | FileLoad
+  | Board 
+  | ScoredBoard 
+  | Info 
 
 type board_dimensions = {
   (** [board_size] is the nxn dimension of the board. *)
@@ -42,6 +62,12 @@ let setup_background color =
   fill_rect 0 0 (size_x ()) (size_y ());
   set_color foreground
 
+(** [font_size s] changes the font size to [s] for all text drawn on the GUI 
+    after this function call. *)
+let font_size size = 
+  let size' = string_of_int size in
+  set_font ("-*-Helvetica-medium-r-normal--" ^ size' ^ "-*-*-*-*-*-iso8859-1")
+
 (** [index p axis] is the line on axis [axis] that position [p] is closest to. 
     On the Go board, lines are indexed top to bottom ([Y] axis), and left to 
     right ([X] axis). *)
@@ -53,8 +79,8 @@ let index pos axis =
   | X -> unadjusted_index
   | Y -> !b_dims.board_size - unadjusted_index - 1
 
-(** [coordinate_ c r] is window coordinate corresponding to column [c] and row 
-    [r] on a Go board. *)
+(** [coordinate_ c r] is the window coordinate corresponding to column [c] and 
+    row [r] on a Go board. *)
 let coordinate c r = 
   let coordinate_of_index idx axis = 
     let loc = 
@@ -111,6 +137,75 @@ let prev_ring game style =
       | White -> draw_ring x y black white
     end
 
+(** [setup_title] draws the GOCAML logo on the current window *)
+let setup_title () = 
+  font_size 72;
+  set_color white;
+  moveto 250 533; 
+  draw_string "GOCAML"
+
+(** [setup_main_buttons b1 b2] creates 2 pseudo-buttons with the labels [b1] 
+    and [b2]. *)
+let setup_main_buttons button1 button2 =
+  set_color black; 
+  fill_rect 215 265 150 60;
+  fill_rect 435 265 150 60;
+  font_size 32; set_color white; 
+  moveto 250 277; draw_string button1;
+  moveto 470 277; draw_string button2
+
+(** [main_button_press e] determines which button, if any, was clicked according
+    to [event] and returns whether the left or right pseudo-button was tapped 
+    as created in [setup_main_buttons]. *)
+let main_button_press event = 
+  let x, y = event.mouse_x, event.mouse_y in
+  let y_fit = y > 265 && y < 325 in
+  let x1_fit = x > 215 && x < 365 in
+  let x2_fit = x > 435 && x < 585 in
+  if y_fit && x1_fit then `Left
+  else if y_fit && x2_fit then `Right
+  else `None
+
+(** TODO *)
+let setup_size_buttons () = 
+  font_size 32;
+  let sizes = Array.of_list ["7"; "9"; "11"; "13"; "19"] in
+  for i = 0 to Array.length sizes - 1 do
+    set_color black;
+    fill_rect (40 + 160 * i) 300 80 60;
+    set_color white;
+    moveto (160 * i + 65) 312;
+    draw_string sizes.(i)
+  done
+
+(** TODO *)
+let size_button_press event = 
+  let x, y = event.mouse_x, event.mouse_y in
+  let size_map = [(0, 7); (1, 9); (2, 11); (3, 13); (4, 19)] in
+  let y_fit = y > 300 && y < 360 in
+  let x_fit = (x - 40) mod 160 < 80 in
+  let idx = x / 160 in
+  if y_fit && x_fit 
+  then Some (List.assoc idx size_map) 
+  else None
+
+(** [setup_message m] displays the message [m] in the center of the current 
+    window. *)
+let setup_message message = 
+  font_size 24;
+  moveto (window_size / 2 - 250) (window_size / 2 + 20);
+  draw_string message
+
+(** [setup_input in] creates a pseudo-input field with the current input being 
+    [in]. *)
+let setup_input input = 
+  font_size 24;
+  set_color black;
+  fill_rect 300 265 200 60;
+  set_color white;
+  moveto (300 + 12) (255 + 15); 
+  draw_string input
+
 (** [setup_dims game] determines the optimal window dimensions and line spacing 
     for the graphical user interface given game [game]. 
     Requires: this function must be called before all other game or window 
@@ -146,7 +241,7 @@ let setup_grid () =
 (** [setup_axis] is the axis labels for the game as specified in 
     [setup_dims]. *)
 let setup_axis () = 
-  set_font "-*-Helvetica-medium-r-normal--18-*-*-*-*-*-iso8859-1";
+  font_size 18;
   let label_axis axis = 
     for j = 0 to 1 do
       let offset = if j = 0 then 0 else !b_dims.length in
@@ -166,7 +261,9 @@ let setup_axis () =
     done;
   in label_axis X; label_axis Y
 
-(** *)
+(** [star_locations] is the three possible locations for a star point on a Go 
+    board. Star points act as a reference for Go boards and mark where handicap 
+    stones, if any, are placed. *)
 let star_locations () = 
   let n1 = 
     Float.floor ((float_of_int !b_dims.board_size -. 1.0) /. 12.0) +. 2.0 
@@ -214,14 +311,18 @@ let setup_handicap game h =
     ) !h_positions;
   if !h_positions != [] then handicap game !h_positions else game
 
-(** [setup_stones game] draws the stones already on the board in [game]. *)
-let setup_stones game = 
+(** [setup_stones g h] draws the stones already on the board in [game]. If the 
+    board is empty and [h != 0], then [h] stones are placed as handicap for 
+    player 1.  *)
+let setup_stones game handicap = 
   let rad = (!b_dims.spacing / 2 - 2) in
-  if stones game Black = [] then setup_handicap game 5 else (* TODO *)
+  if stones game Black = [] then setup_handicap game handicap else (* TODO *)
     (List.iter (fun (c,r) -> draw_stone_cr (c,r) rad white) (stones game White);
      List.iter (fun (c,r) -> draw_stone_cr (c,r) rad black) (stones game Black);
      prev_ring game `Draw; game)
 
+(** [set_score g] marks each intersection according to whether it is black, 
+    white, or neutral territory on the Go board. *)
 let set_score game = 
   let grid = fill_grid game in
   for r = 0 to Array.length grid - 1 do
@@ -234,11 +335,41 @@ let set_score game =
     done
   done
 
+let set_default () = 
+  clear_graph ();
+  setup_background background_color;
+  setup_title ()
+
+(** [set_start] draws the main loading page for GOcaml. *)
+let set_main () = 
+  set_default ();
+  setup_main_buttons "PLAY" "INFO"
+
+let set_load_game () = 
+  set_default ();
+  setup_message "Would you like to play a new or old GOcaml game?";
+  setup_main_buttons "NEW" "OLD"
+
+let set_board_size () =
+  set_default ();
+  setup_message "Please select from the default GOcaml board sizes";
+  setup_size_buttons ()
+
+let set_handicap () =
+  set_default ();
+  setup_message "Please enter the black stone's handicap, if any";
+  setup_input ""; ()
+
+let set_file_load () = 
+  set_default ();
+  setup_message "Please enter the GOcaml file name you want to load";
+  setup_input ""; ()
+
 (** [set_game g] initializes the initial board state given game [g]. *)
 let set_game game = 
   setup_dims game;
   clear_graph ();
-  setup_background (rgb 235 195 120);
+  setup_background background_color;
   setup_grid ();
   setup_axis (); 
   setup_stars ();
@@ -249,60 +380,135 @@ let set_info game =
   clear_graph ();
   setup_background (rgb 235 195 120)
 
-let set_config game = 
-  setup_background (rgb 235 195 120); ()
-(* Field to load file *)
-(* field to set handicap, default is 1 *)
-
 (** [user_input game t] listens for user input and updates the game accordingly. 
 *)
 let rec user_input game display t0 =
   let event = wait_next_event [Key_pressed; Button_down] in
-  match event with
-  | {mouse_x; mouse_y; button; keypressed; key} ->
-    if keypressed then 
-      match event.key, display with 
-      | ('i', Info) -> user_input (set_game game) Board t0
-      | ('i', Board) | ('i', ScoredBoard) -> 
-        set_info game; user_input game Info t0
-      | ('p', Board) -> 
-        let game' = step game None t0 in
-        user_input game' Board (time ())
-      | ('q', _) -> exit 0
-      | ('s', Info) -> to_json game "./games/prisoners.json"; exit 0 (* TODO *)
-      | ('s', Board) -> set_score game; user_input game ScoredBoard t0
-      | ('s', ScoredBoard) -> ignore (set_game game); user_input game Board t0
-      | _ -> user_input game Board t0
-    else if button  && display != Info && display != ScoredBoard then
-      let column = index mouse_x X in
-      let row = index mouse_y Y in
-      let actual_x, actual_y = coordinate column row in
-      let t1 = time () in
-      try
-        let game' = step game (Some (column, row)) (t1 - t0) in
-        let (c1,c2) = match turn game with
-          | White -> white, black
-          | Black -> black, white
-        in
-        draw_stone actual_x actual_y !b_dims.radius c1;
-        draw_ring actual_x actual_y c1 c2;
-        prev_ring game `Remove;
-        ignore (set_game game');
-        user_input game' Board t1
-      with 
-      | KoException -> user_input game Board t0
-      | SelfCaptureException -> user_input game Board t0
-      | StoneAlreadyExistsException -> user_input game Board t0
-      | TimeExpiredException -> () (* TODO *)
-    else match display with 
-      | Info -> user_input game Info t0
-      | ScoredBoard -> user_input game ScoredBoard t0
-      | d -> user_input game d t0 
+  if event.keypressed || event.button then
+    if event.key = 'q' then exit 0 
+    else match display with
+      | Main -> eval_main event game t0
+      | LoadGame -> eval_load_game event game t0
+      | BoardSize -> eval_board_size event game t0
+      | Handicap -> eval_handicap event game t0
+      | FileLoad -> eval_file_load event game t0
+      | Board -> eval_board event game t0
+      | ScoredBoard -> eval_scored_board event game t0
+      | Info -> eval_info event game t0
+
+(* TODO *)
+and eval_main event game t0 =
+  let k, b = event.key, main_button_press event in
+  match k, b with
+  | 'p', _ | _, `Left -> set_load_game (); user_input game LoadGame t0
+  | 'i', _ | _, `Right -> set_load_game (); user_input game LoadGame t0
+  | _, _ -> user_input game Main t0
+
+and eval_load_game event game t0 = 
+  let k, b = event.key, main_button_press event in
+  match k, b with
+  | 'b', _ -> set_main (); user_input game Main t0
+  | 'n', _ | _, `Left -> set_board_size (); user_input game BoardSize t0
+  | 'o', _ | _, `Right -> set_file_load (); user_input game FileLoad t0
+  | _, _ -> user_input game LoadGame t0
+
+and eval_board_size event game t0 = 
+  if event.keypressed then 
+    match event.key with
+    | 'b' -> set_load_game (); user_input game LoadGame t0
+    | _ -> user_input game BoardSize t0
+  else
+    let size = size_button_press event in
+    if size = None then user_input game BoardSize t0
+    else 
+      let file = Printf.sprintf "./games/%d.json" (Option.get size) in
+      let game = Yojson.Basic.from_file file |> from_json in
+      set_handicap (); user_input game Handicap t0
+
+(* TODO *)
+and accept_input event game t0 display =
+  let event = ref event in
+  let break = ref false in
+  let str = ref "" in
+  while not !break do
+    (match !event.key with
+     | '\r' -> break := true
+     | '\b' -> str := String.sub !str 0 (max 0 ((String.length !str) - 1))
+     | k -> str := !str ^ Char.escaped k);
+    setup_input !str;
+    if not !break then 
+      event := wait_next_event [Key_pressed; Button_down] 
+  done;
+  match display with 
+  | Handicap -> begin 
+      try 
+        user_input (int_of_string !str |> set_game game) Board t0
+      with
+      | _ -> setup_input ""; user_input game Handicap t0
+    end
+  | FileLoad -> 
+    let game = Yojson.Basic.from_file ("./games/" ^ !str) |> from_json 
+    in user_input (set_game game 0) Board t0
+  | _ -> failwith "precondition violated"
+
+and eval_handicap event game t0 =
+  accept_input event game t0 Handicap
+
+and eval_file_load event game t0 =
+  accept_input event game t0 FileLoad
+
+and eval_board event game t0 =
+  if event.keypressed then
+    match event.key with 
+    | 'i' -> set_info game; user_input game Info t0
+    | 'p' -> 
+      let game' = step game None t0 in
+      user_input game' Board (time ())
+    | 's' -> set_score game; user_input game ScoredBoard t0
+    | _ -> user_input game Board t0
+  else 
+    let column = index event.mouse_x X in
+    let row = index event.mouse_y Y in
+    let actual_x, actual_y = coordinate column row in
+    let t1 = time () in
+    try
+      let game' = step game (Some (column, row)) (t1 - t0) in
+      let (c1,c2) = match turn game with
+        | White -> white, black
+        | Black -> black, white
+      in
+      draw_stone actual_x actual_y !b_dims.radius c1;
+      draw_ring actual_x actual_y c1 c2;
+      prev_ring game `Remove;
+      ignore (set_game game' 0);
+      user_input game' Board t1
+    with 
+    | KoException -> user_input game Board t0
+    | SelfCaptureException -> user_input game Board t0
+    | StoneAlreadyExistsException -> user_input game Board t0
+    | TimeExpiredException -> () (* TODO *)
+
+and eval_scored_board event game t0 =
+  if event.keypressed then
+    match event.key with
+    | 'i' -> set_info game; user_input game Info t0
+    | 's' -> ignore (set_game game 0); user_input game Board t0
+    | _ -> user_input game ScoredBoard t0
+
+and eval_info event game t0 = 
+  if event.keypressed then
+    match event.key with 
+    | 'i' -> user_input (set_game game 0) Board t0
+    | 's' -> 
+      let rand_file = (Printf.sprintf "./games/%s.json" (random_string 10)) in
+      to_json game rand_file; exit 0 (* TODO *)
+    | _ -> user_input game Info t0
 
 let main () =
-  let game = Yojson.Basic.from_file "games/9.json" |> from_json in (* TODO*)
+  let game = Yojson.Basic.from_file "games/19.json" |> from_json in (* TODO*)
   open_graph (Printf.sprintf " %dx%d" window_size window_size);
   set_window_title "GOcaml";
-  user_input (set_game game) Board (time ())
+  set_main ();
+  user_input game Main (time ())   (* user_input (set_game game) Main (time ()) *)
 
 let () = main ()

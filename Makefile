@@ -1,4 +1,4 @@
-MODULES=$(addprefix src/, authors command main game gui server util)
+MODULES=$(addprefix src/, authors command main game gui util)
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
