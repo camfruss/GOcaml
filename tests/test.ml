@@ -192,10 +192,9 @@ let game_tests = [
     SelfCaptureException;
   test_raises2 "StoneAlreadyExists" (step error_test) (Some (0, 1)) 0 
     StoneAlreadyExistsException;
+  test_raises2 "KoException" (step ko_game) (Some (5, 3)) 0 KoException;
 
   (* UNDO *)
-
-  (* SCORE *)
 ]
 
 let suite =
