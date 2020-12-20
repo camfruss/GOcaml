@@ -382,7 +382,7 @@ let self_sacrifice t pos =
   in
   if List.fold_left (fun acc pos -> acc + liberties t pos) 0 (group t pos) = 0 
      && 
-     max_adj_liberties > 0 (* TODO: max adjacent liberties of other color *)
+     max_adj_liberties > 0
   then raise SelfCaptureException 
   else ()
 
@@ -467,7 +467,7 @@ let game_end t =
   let pris1_len = List.length t.players.p1.prisoners in
   let pris2_len = List.length t.players.p2.prisoners in
   num_stones = p_curr_stone && (-1, -1) = p_pos 
-  && not (0 != pris1_len || 0 != pris2_len)
+  && not (0 = pris1_len || 0 = pris2_len)
 
 let step t move time = 
   let board' = match move with 
