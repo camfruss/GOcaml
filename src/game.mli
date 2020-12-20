@@ -89,3 +89,7 @@ val string_of_board : t -> string
 (** [fill_grid t] is the board in [t] with black, neutral, and blwhiteack 
     territory mark accordingly, as well as black and white stones. *)
 val fill_grid : t -> intersection array array
+
+(**[undo t ] reverts to the game at beginning of the previous
+    player's turn excluding time.  *)
+val undo : t -> t 

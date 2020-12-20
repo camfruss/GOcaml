@@ -5,7 +5,7 @@ MLIS=$(MODULES:=.mli)
 MAIN=main.byte
 TEST=test.byte
 GUI=gui.byte
-TERMINAL=n
+TERMINAL=y
 
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 

@@ -21,7 +21,10 @@ exception StoneAlreadyExists
     - Forfeit
     - Save the current game to the file specified 
     - Quit will quit the game application 
-    - Print will print the current contents of the board *)
+    - Print will print the current contents of the board 
+    - Score prints the current score of each player
+    - Undo restore the game to the beginning of the previous player's turn
+        excluding time*)
 type command = 
   | Pass
   | Play of string
@@ -30,6 +33,7 @@ type command =
   | Quit
   | Print
   | Score 
+  | Undo 
 
 (** [istone_pos pos] is the integer position of [pos].
     Requires: [pos] is a single capitalized alphabetic character between A and 

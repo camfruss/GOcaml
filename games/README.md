@@ -35,7 +35,7 @@ p# : {
 
 ### Prisoner
 
-A single prisoner is represented by three fields `col`, `row`, and `cur_stones`. The `col` and `row` fields denote the column and row of the stone that was captured. The field `cur_stones` represents the number of stones on the board after the move is completed.
+A single prisoner is represented by three fields `col`, `row`, and `cur_stones`. The `col` and `row` fields denote the column and row of the stone that was captured. The field `cur_stones` represents the number of stones on the board after the capture is completed.
 ```
 {
   "col" : int,

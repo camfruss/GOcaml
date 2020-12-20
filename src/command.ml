@@ -20,6 +20,7 @@ type command =
   | Quit
   | Print
   | Score 
+  | Undo 
 
 (* TODO: crashes on invalid inputs *)
 let istone_pos pos =
@@ -36,6 +37,7 @@ let extract_command = function
     else if h = "forfeit" then Forfeit
     else if h = "quit" then Quit 
     else if h = "print" then Print 
+    else if h = "undo" then Undo 
     else if h = "score" then Score else rd ()
   | h :: t :: [] ->
     if h = "play" then Play t
@@ -54,7 +56,7 @@ let valid_placement game cmd =
     if in_bounds game ipos then 
       if is_empty game ipos then cmd else raise StoneAlreadyExists 
     else raise GoOutOfBounds
-  | Pass | Forfeit | Quit | Save _ | Score | Print -> cmd
+  | Pass | Forfeit | Quit | Save _ | Score | Print | Undo -> cmd
 
 (** [is_valid game lst] is the command extracted from [lst]. 
     Raises: [Deformed] if the command is invalid. *)

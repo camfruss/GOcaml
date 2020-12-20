@@ -14,7 +14,7 @@ type stone = Black | White
 (** [player] is the type representing a single player in a go game. *)
 type player = {
   id : string;
-  prisoners : int list;
+  prisoners : (int * int * int) list;
   byoyomi : int;
   game_time : int;
 }
@@ -25,13 +25,22 @@ type players = {
   p2 : player;
 }
 
+(** [player_stones acc] creates a triple list of (col. row, cur_stones) *)
+let rec player_stones acc = function
+  | [] -> List.rev acc
+  | h :: t ->
+    let col = h |> member "col" |> to_int in
+    let row = h |> member "row" |> to_int in
+    let cur_stones = h |> member "cur_stones" |> to_int in
+    player_stones ((col,row,cur_stones) :: acc) t
+
 (** [to_player json] is the player record represented by a valid player.  *)
 let to_player json = 
   let prisoners = 
     json 
     |> member "prisoners" 
     |> to_list 
-    |> List.map (fun elt -> elt |> to_int) in
+    |> player_stones [] in
   {
     byoyomi = json |> member "byoyomi" |> to_int;
     game_time = json |> member "game_time" |> to_int;
@@ -55,14 +64,6 @@ type board = {
 
 (** [to_board json] is the board record represented by the valid json board. *)
 let to_board json =
-  let rec player_stones acc = function
-    | [] -> List.rev acc
-    | h :: t ->
-      let col = h |> member "col" |> to_int in
-      let row = h |> member "row" |> to_int in
-      let cur_stones = h |> member "cur_stones" |> to_int in
-      player_stones ((col,row,cur_stones) :: acc) t
-  in
   {
     size = json |> member "size" |> to_int;
     white = json |> member "white" |> to_list |> player_stones [];
@@ -111,26 +112,6 @@ let from_json json =
     config = config;
   }
 
-(** [from_player p name] is the json representation of a [player] record with 
-    key [name]. *)
-let from_player p name =
-  Printf.sprintf 
-    {|"%s" : {
-        "byoyomi" : %d,
-        "game_time" : %d,
-        "id" : "%s",
-        "prisoners" : %s
-    }|} name p.byoyomi p.game_time p.id 
-    (string_of_list string_of_int p.prisoners)
-
-(** [from_players ps] is the json representation of a [players] record. *)
-let from_players ps = 
-  Printf.sprintf 
-    {|"players" : {
-      %s,
-      %s
-    }|} (from_player ps.p1 "p1") (from_player ps.p2 "p2")
-
 (** [from_move m] is the json representation of a single move as specified by 
     the column, row, and move number of a given stone. *)
 let from_move col row mov = 
@@ -140,6 +121,31 @@ let from_move col row mov =
       "row" : %d,
       "cur_stones" : %d
     }|} col row mov
+
+(** [from_player p name] is the json representation of a [player] record with 
+    key [name]. *)
+let from_player p name =
+  let moves lst = 
+    List.map (fun (c,r,m) -> from_move c r m) lst 
+    |> string_of_list (fun id -> id)
+  in
+  Printf.sprintf 
+    {|"%s" : {
+        "byoyomi" : %d,
+        "game_time" : %d,
+        "id" : "%s",
+        "prisoners" : %s
+    }|} name p.byoyomi p.game_time p.id 
+    (moves p.prisoners)
+
+(** [from_players ps] is the json representation of a [players] record. *)
+let from_players ps = 
+  Printf.sprintf 
+    {|"players" : {
+      %s,
+      %s
+    }|} (from_player ps.p1 "p1") (from_player ps.p2 "p2")
+
 
 (** [from_board b] is the json representation of a [board] record [b]. *)
 let from_board b = 
@@ -383,8 +389,8 @@ let new_players t time move =
     | Some pos -> `Place
   in
   let pn = match placement, turn t with 
-    | `Pass, Black -> {t.players.p2 with prisoners = n_stones t :: t.players.p2.prisoners}
-    | `Pass, White -> {t.players.p1 with prisoners = n_stones t :: t.players.p1.prisoners}
+    | `Pass, Black -> {t.players.p2 with prisoners = (-1, -1, n_stones t) :: t.players.p2.prisoners}
+    | `Pass, White -> {t.players.p1 with prisoners = (-1, -1, n_stones t) :: t.players.p1.prisoners}
     | `Place, Black -> new_player t time
     | `Place, White -> new_player t time
   in 
@@ -426,15 +432,124 @@ let step t move time =
     let t'' = remove_prisoners t' p in
     self_sacrifice t'' p; t''
 
+(**[undo_white_helper t] is the game at the start of white's last turn in [t] *)
+let undo_white_helper t =
+  let (c, r, prev_pris) = List.hd t.players.p2.prisoners in 
+  let prisoners = 
+    List.filter (fun (c,r,a) -> a <> prev_pris) t.players.p2.prisoners in 
+  let freed = 
+    List.filter (fun (c,r,a) -> a = prev_pris) t.players.p2.prisoners in 
+  let p2' = {t.players.p2 with prisoners = prisoners} in 
+  let players' = {t.players with p2 = p2'} in 
+  let board' = 
+    (* {t.board with white = List.tl t.board.white}  *)
+    {
+      size = t.board.size;
+      black = freed @ t.board.black;
+      white = List.tl t.board.white
+    }
+  in 
+  (* let board'' = {board' with black = freed @ t.board.black} in  *)
+  let config' = new_config t in 
+  {
+    players = players';
+    board = board';
+    config = config'
+  }
+
+(**[undo_black_helper t] is the game at the start of black's last turn in [t]*)
+let undo_black_helper t =
+  let c, r, prev_pris = List.hd t.players.p1.prisoners in 
+  let prisoners = 
+    List.filter (fun (c,r,a) -> a <> prev_pris) t.players.p1.prisoners in 
+  let freed = 
+    List.filter (fun (c,r,a) -> a = prev_pris) t.players.p1.prisoners in
+  let p1' = {t.players.p1 with prisoners = prisoners} in 
+  let players' = {t.players with p1 = p1'} in 
+  let board' = 
+    {
+      size = t.board.size;
+      black = List.tl t.board.black;
+      white = freed @ t.board.white
+    }
+  in 
+  let config' = new_config t in 
+  {
+    players = players';
+    board = board';
+    config = config'
+  }
+
+(**[black_helper] is the game at the start of black's last turn in [t],
+    handles the case where it is black's first turn *)
+let black_helper t = 
+  if List.length t.board.white = 0 then 
+    (print_endline "cannot undo first move"; t )
+  else 
+    let board' = {t.board with white = List.tl t.board.white} in
+    let config' = new_config t in 
+    { players = t.players; board = board'; config = config'}
+
+(**[get_curr_stone lst] is the current number of stones on the board according 
+    to [lst] *)
+let get_curr_stone = function
+  | [] -> None 
+  | (c,r,curr) :: t -> Some curr 
+
+(**[captured t] is true if stones were captured last turn in game [t]*)
+let captured t = 
+  let w_board = get_curr_stone t.board.white in 
+  let b_board = get_curr_stone t.board.black in 
+  let w_pris = get_curr_stone t.players.p1.prisoners in 
+  let b_pris = get_curr_stone t.players.p2.prisoners in 
+  let compare_curr prev_p curr_b = 
+    if curr_b = prev_p then true else false 
+  in 
+  match turn t with 
+  | Black -> compare_curr b_pris w_board
+  | White -> compare_curr w_pris b_board 
+
+let undo t  = 
+  match turn t, captured t with 
+  | White, false ->
+    let board' = {t.board with black = List.tl t.board.black} in
+    let config' = new_config t in 
+    { players = t.players; board = board'; config = config'}
+  | White, true -> undo_black_helper t 
+  | Black, false -> black_helper t 
+  | Black, true ->if List.length t.board.white = 0 then black_helper t 
+    else undo_white_helper t 
+
+(** [create_labels d a c acc] if [alph] is true it is the alphabetic labels
+      for a board of size [dim], else, it is the numberic labels 
+      Ex. [create_labels 3 false 0 []] is [["0";"1";"2"]] *)
+let rec create_labels dim alph counter acc= 
+  if counter = dim then List.rev acc 
+  else 
+    match alph with 
+    | true -> let v = Char.escaped (Char.chr (counter + 64)) in 
+      create_labels dim alph (counter + 1) (v :: acc)
+    | false ->if counter >= 10 then let v = string_of_int counter in 
+        create_labels dim alph (counter + 1) (v :: acc)
+      else let v = " " ^ string_of_int counter   in 
+        create_labels dim alph (counter + 1) (v :: acc)
+
 (** [full_board t] creates an nxn matrix consisting of dots to represent an 
     empty Go board of size n. *)
 let full_board t = 
-  let dim = t.board.size in 
+  let dim = t.board.size + 1 in 
   let grid = Array.make_matrix dim dim "⋅" in
+  let rec add_labels (x,y) alph = function 
+    | h :: t -> grid.(x).(y) <- h; if alph then add_labels (x,y + 1) alph t
+      else  add_labels (x + 1,y) alph t
+    | [] -> () in 
   let rec add_stones rep = function 
-    | (c, r, _) :: t -> grid.(r).(c) <- rep; add_stones rep t
+    | (c, r, _) :: t -> grid.(r+ 1).(c+1) <- rep; add_stones rep t
     | [] -> ()
-  in add_stones "W" t.board.white; add_stones "B" t.board.black; grid
+  in add_stones "W" t.board.white; add_stones "B" t.board.black; 
+  add_labels (0,0) true (create_labels dim true 0 []); 
+  add_labels (0,0) false (create_labels dim false 0 []);
+  grid.(0).(0) <- "  "; grid
 
 let string_of_string_array arr =  
   String.concat " " (Array.to_list arr)
