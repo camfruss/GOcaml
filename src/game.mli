@@ -1,4 +1,8 @@
 
+(** Game contains the logic required for loading, saving, and playing a GOcaml 
+    game. It represents the internal game state and does not provide any 
+    user-facing interactive capabilities.  *)
+
 (** [t] is the abstract type of values representing go games. *)
 type t
 
