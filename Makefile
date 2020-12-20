@@ -6,7 +6,7 @@ MAIN=main.byte
 TEST=test.byte
 GUI=gui.byte
 PKGS=ounit2,str,yojson,graphics,ANSITerminal
-TERMINAL=n
+TERMINAL=y
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
 build:

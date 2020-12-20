@@ -2,10 +2,6 @@ open Game
 
 exception Deformed
 
-(** [rd] is an alias for [raise Deformed]. *)
-let rd () = 
-  raise Deformed
-
 exception Empty
 
 exception GoOutOfBounds
@@ -22,15 +18,16 @@ type command =
   | Score 
   | Undo 
 
-(* TODO: crashes on invalid inputs *)
 let istone_pos pos =
-  let col = Char.code (String.get pos 0) - 65 in
-  let row = int_of_string (Str.string_after pos 1) - 1
-  in (col, row)
+  try 
+    let col = Char.code (String.get pos 0) - 65 in
+    let row = int_of_string (Str.string_after pos 1) - 1
+    in (col, row)
+  with 
+  | _ -> raise Deformed
 
-(** [extract_command lst] rasies [Empty] if [lst] is empty and  
-    Deformed if the lst doesn't have a correct format. 
-    Returns a command otherwise. *)
+(** [extract_command lst] rasies [Empty] if [lst] is empty and  [Deformed] if 
+    the lst doesn't have a correct format. Returns a command otherwise. *)
 let extract_command = function
   | h :: [] ->
     if h = "pass" then Pass
@@ -38,12 +35,12 @@ let extract_command = function
     else if h = "quit" then Quit 
     else if h = "print" then Print 
     else if h = "undo" then Undo 
-    else if h = "score" then Score else rd ()
+    else if h = "score" then Score else raise Deformed
   | h :: t :: [] ->
     if h = "play" then Play t
-    else if h = "save" then Save t else rd ()
+    else if h = "save" then Save t else raise Deformed
   | [] -> raise Empty
-  | _ -> rd ()
+  | _ -> raise Deformed
 
 (** [valid_placement game cmd] makes sure that the stone position of the play 
     command is within the bounds of the board and is currently empty. 

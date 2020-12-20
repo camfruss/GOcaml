@@ -23,11 +23,11 @@ let load_game file =
   Yojson.Basic.from_file file |> from_json
 
 (* All the game files *)
-let standard_19 = load_game "games/19.json"
+let empty_5 = load_game "games/5.json"
+let empty_19 = load_game "games/19.json"
 let game_one = load_game "games/game_one.json"
 let corner = load_game "games/corner.json"
 let territories = load_game "games/territories.json"
-let empty5 = load_game "games/5.json"
 
 let command_tests = [
   (* Converting string location to integer tuple *)
@@ -36,24 +36,23 @@ let command_tests = [
   cmp_values "A13 is (0, 12)" (0, 12) (istone_pos "A13");
 
   (* Normal Parse Tests *)
-  cmp_values "play A1 is Play A1" (parse standard_19 "play A1") (Play "A1");
-  cmp_values "' quit ' is Quit" (parse standard_19 " quit ") Quit;
-  cmp_values "forfeit is Forfeit" (parse standard_19 "forfeit") Forfeit;
-  cmp_values "pass is Pass" (parse standard_19 "pass") Pass;
+  cmp_values "play A1 is Play A1" (parse empty_19 "play A1") (Play "A1");
+  cmp_values "' quit ' is Quit" (parse empty_19 " quit ") Quit;
+  cmp_values "forfeit is Forfeit" (parse empty_19 "forfeit") Forfeit;
+  cmp_values "pass is Pass" (parse empty_19 "pass") Pass;
   cmp_values "save file.json is Save 'file.json'" 
-    (parse standard_19 "save file.json") (Save "file.json");
-  cmp_values "score is Score" (parse standard_19 "score") Score;
-  cmp_values "score is Score" (parse standard_19 "print") Print;
-
+    (parse empty_19 "save file.json") (Save "file.json");
+  cmp_values "score is Score" (parse empty_19 "score") Score;
+  cmp_values "score is Score" (parse empty_19 "print") Print;
 
   (* Parse Exception Tests *)
-  test_raises2 "Deformed Exception" parse standard_19 "pLaY A2" Deformed;
-  test_raises2 "Empty Exception" parse standard_19 " " Empty;
+  test_raises2 "Deformed Exception" parse empty_19 "pLaY A2" Deformed;
+  test_raises2 "Empty Exception" parse empty_19 " " Empty;
   test_raises2 "StoneAlreadyExists Exception" parse corner "play A1" 
     StoneAlreadyExists;
-  test_raises2 "GoOutOfBounds Exception" parse standard_19 "play Z1" 
+  test_raises2 "GoOutOfBounds Exception" parse empty_5 "play Z1" 
     GoOutOfBounds;
-  test_raises2 "GoOutOfBounds Exception" parse standard_19 "play A20" 
+  test_raises2 "GoOutOfBounds Exception" parse empty_5 "play A20" 
     GoOutOfBounds;
 ]
 
@@ -99,34 +98,35 @@ let file_tests = [
     (load_game "./tests/supporting/corner.json") corner
 ]
 
-(* GAME STATE WAS TESTED MANUALLY *)
+(* GUI GAME STATE WAS TESTED MANUALLY *)
 
 let game_tests = [
   (* In Bounds Tests *)
-  cmp_values "standard_19 0,0 in bounds" (in_bounds standard_19 (0,0)) true;
-  cmp_values "standard_19 18,18 in bounds" (in_bounds standard_19 (18,18)) true;
-  cmp_values "standard_19 -1,-1 not in bounds" (in_bounds standard_19 (-1,-1)) 
-    false;
-  cmp_values "standard_19 19,19 not in bounds" (in_bounds standard_19 (19,19)) 
-    false;
+  cmp_values "empty_19 0,0 in bounds" (in_bounds empty_19 (0,0)) true;
+  cmp_values "empty_19 18,18 in bounds" (in_bounds empty_19 (18,18)) true;
+  cmp_values "empty_19 -1,-1 not in bounds" (in_bounds empty_19 (-1,-1)) false;
+  cmp_values "empty_19 19,19 not in bounds" (in_bounds empty_19 (19,19)) false;
 
   (* Is Empty Tests *)
-  cmp_values "standard_19 F8 is empty" (is_empty standard_19 (5,7)) true;
+  cmp_values "empty_19 F8 is empty" (is_empty empty_19 (5,7)) true;
   cmp_values "corner A1 is not empty" (is_empty corner (0,0)) false;
 
   (* Scoring Tests *)
   cmp_values "corner score" (score corner) (0.0,5.5);
-  cmp_values "standard_19 score" (score standard_19) (0.0, 6.5);
+  cmp_values "empty_19 score" (score empty_19) (0.0, 6.5);
   (** has territories but no prisoners, komi zero *)
   cmp_flt "territories score" (fst (15., 17.)) (fst (score territories));
   cmp_flt "territories score" (snd (15., 17.)) (snd (score territories));
 
-  (*Last stone tests *)
-  cmp_values "empty board" (-1,-1) (last_stone empty5); 
+  (* Last stone tests *)
+  cmp_values "empty board" (-1,-1) (last_stone empty_5); 
   cmp_values "place a stone at (1,1)" (1,1) 
-    (last_stone (step standard_19 (Some (1,1)) 1));
+    (last_stone (step empty_19 (Some (1,1)) 1));
   cmp_values "empty board, None move" (-1,-1) 
-    (last_stone (step standard_19 None 1));
+    (last_stone (step empty_19 None 1)); (* <- TODO: crashing *)
+
+  (* Handicap tests *)
+  cmp_values "0 handicap" (handicap_c empty_19 0) [];
 ]
 
 let suite =

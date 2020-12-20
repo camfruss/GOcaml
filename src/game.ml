@@ -15,40 +15,23 @@ type stone = Black | White
 
 (** [player] is the type representing a single player in a go game. *)
 type player = {
+  (** [id] is the name of the player *)
   id : string;
+  (** [prisoners] is the prisoners captured by the player *)
   prisoners : (int * int * int) list;
+  (** [byoyomi] is the number of byoyomi periods the player has left *)
   byoyomi : int;
+  (** [game_time] is the amount of time remaining on the player's game clock. *)
   game_time : int;
 }
 
 (** [players] is the type representing a set of 2 players in a go game. *)
 type players = {
+  (** [p1] is the player with black stones *)
   p1 : player;
+  (** [p2] is the player with white stones *)
   p2 : player;
 }
-
-(** [player_stones acc] creates a triple list of (col. row, cur_stones) *)
-let rec player_stones acc = function
-  | [] -> List.rev acc
-  | h :: t ->
-    let col = h |> member "col" |> to_int in
-    let row = h |> member "row" |> to_int in
-    let cur_stones = h |> member "cur_stones" |> to_int in
-    player_stones ((col,row,cur_stones) :: acc) t
-
-(** [to_player json] is the player record represented by a valid player.  *)
-let to_player json = 
-  let prisoners = 
-    json 
-    |> member "prisoners" 
-    |> to_list 
-    |> player_stones [] in
-  {
-    byoyomi = json |> member "byoyomi" |> to_int;
-    game_time = json |> member "game_time" |> to_int;
-    id = json |> member "id" |> to_string;
-    prisoners = prisoners;
-  }
 
 (** [board] is the type presenting a single go board. *)
 type board = {
@@ -58,19 +41,11 @@ type board = {
       after the move, respectively. The column number is the index of the 
       character of the column in the alphabet. 
       Example:
-      - 1, 1, 1 would be the stone placed B2, which becomes the only stone on 
+      - 1, 1, 1 would be the stone placed B2, which becomes the only 1 stone on 
         the board. *)
   white : (int * int * int) list;
   black : (int * int * int) list
 }
-
-(** [to_board json] is the board record represented by the valid json board. *)
-let to_board json =
-  {
-    size = json |> member "size" |> to_int;
-    white = json |> member "white" |> to_list |> player_stones [];
-    black = json |> member "black" |> to_list |> player_stones [];
-  }
 
 type config = {
   (** [byoyomi_period] is the length in seconds of each byo-yomi period. *)
@@ -82,7 +57,46 @@ type config = {
   turn : char;
 }
 
-(** [to_config j] is the [config] record corresponding to the config [json]. *)
+type t = {
+  players : players;
+  board : board;
+  config : config;
+}
+
+(** [player_stones lst] is the stones currently in [lst]. *)
+let player_stones lst =
+  let rec stones_r acc = function
+    | [] -> List.rev acc
+    | h :: t ->
+      let col = h |> member "col" |> to_int in
+      let row = h |> member "row" |> to_int in
+      let cur_stones = h |> member "cur_stones" |> to_int in
+      stones_r ((col, row, cur_stones) :: acc) t
+  in stones_r [] lst
+
+(** [to_player json] is the player record represented by a valid player. *)
+let to_player json = 
+  let prisoners = 
+    json 
+    |> member "prisoners" 
+    |> to_list 
+    |> player_stones 
+  in {
+    byoyomi = json |> member "byoyomi" |> to_int;
+    game_time = json |> member "game_time" |> to_int;
+    id = json |> member "id" |> to_string;
+    prisoners = prisoners;
+  }
+
+(** [to_board json] is the board record represented by the valid json board. *)
+let to_board json =
+  {
+    size = json |> member "size" |> to_int;
+    white = json |> member "white" |> to_list |> player_stones;
+    black = json |> member "black" |> to_list |> player_stones;
+  }
+
+(** [to_config j] is the [config] record corresponding to the config [j]. *)
 let to_config json = 
   let turn = 
     if json |> member "turn" |> to_string = "b" then 'b' else 'w' 
@@ -92,12 +106,6 @@ let to_config json =
     komi = json |> member "komi" |> to_float;
     turn = turn;
   }
-
-type t = {
-  players : players;
-  board : board;
-  config : config;
-}
 
 let from_json json =
   let players = json |> member "players" in
@@ -128,7 +136,7 @@ let from_move col row mov =
     key [name]. *)
 let from_player p name =
   let moves lst = 
-    List.map (fun (c,r,m) -> from_move c r m) lst 
+    List.map (fun (c, r, m) -> from_move c r m) lst 
     |> string_of_list (fun id -> id)
   in
   Printf.sprintf 
@@ -137,8 +145,7 @@ let from_player p name =
         "game_time" : %d,
         "id" : "%s",
         "prisoners" : %s
-    }|} name p.byoyomi p.game_time p.id 
-    (moves p.prisoners)
+    }|} name p.byoyomi p.game_time p.id (moves p.prisoners)
 
 (** [from_players ps] is the json representation of a [players] record. *)
 let from_players ps = 
@@ -148,11 +155,10 @@ let from_players ps =
       %s
     }|} (from_player ps.p1 "p1") (from_player ps.p2 "p2")
 
-
 (** [from_board b] is the json representation of a [board] record [b]. *)
 let from_board b = 
   let moves lst = 
-    List.map (fun (c,r,m) -> from_move c r m) lst 
+    List.map (fun (c, r ,m) -> from_move c r m) lst 
     |> string_of_list (fun id -> id)
   in
   Printf.sprintf 
@@ -180,7 +186,10 @@ let to_json t out_file =
         %s
       }|} (from_players t.players) (from_board t.board) (from_config t.config)
   in 
-  let oc = open_out out_file in (** TODO: if doesn't end in .json,InvalidFile *)
+  let out_file' = 
+    if String.sub out_file (String.length out_file - 5) 5 != ".json" 
+    then out_file ^ ".json" else out_file in 
+  let oc = open_out out_file' in
   Printf.fprintf oc "%s\n" content;
   close_out oc
 
@@ -210,8 +219,7 @@ let bounds t =
 
 let is_empty t pos = 
   if in_bounds t pos then 
-    not (List.mem pos (stones t Black) 
-         || List.mem pos (stones t White))
+    not (List.mem pos (stones t Black) || List.mem pos (stones t White))
   else false
 
 (** [c_adjacent pos] are the coordinates of all the positions adjacent to 
@@ -277,22 +285,22 @@ let liberties t pos =
 let turn t =
   if t.config.turn = 'b' then Black else White
 
-(** TOOD *)
+let names t = 
+  (t.players.p1.id, t.players.p2.id)
+
+(** [cur_player t] is the player record corresponding to whose turn it currently
+    is. *)
 let cur_player t = 
   match turn t with
   | Black -> t.players.p1
   | White -> t.players.p2
-
-let names t = 
-  (t.players.p1.id, t.players.p2.id)
 
 (** [n_stones] is the number of stones currently on the board in [t]. *)
 let n_stones t =
   let n_moves = function
     | Black -> max_triple3 t.board.white
     | White -> max_triple3 t.board.black
-  in 
-  let _, _, max_moves = max_triple3 [(n_moves Black); (n_moves White)]
+  in let _, _, max_moves = max_triple3 [(n_moves Black); (n_moves White)]
   in max_moves
 
 let last_stone t = 
@@ -301,7 +309,7 @@ let last_stone t =
     | Black -> t.board.white
   in 
   match max_triple3 s with
-  | (c,r,_) -> (c,r)
+  | (c, r, _) -> (c, r)
 
 (** [deduct_time t time] is the game with the proper time parameters after 
     the player who just went spent [time] seconds on their move. *)
@@ -316,7 +324,7 @@ let deduct_time t time =
 
 (** [remove_stones t s] removes all the stones in [s] from the board in [t]. *)
 let remove_stones t s =
-  let remove_cr t (c,r) = 
+  let remove_cr t (c, r) = 
     let b = match turn t with
       | Black -> t.board.black 
       | White -> t.board.white
@@ -327,12 +335,14 @@ let remove_stones t s =
     | (c, r) :: tail -> begin
         let p1', p2', board' = match turn t with
           | White -> 
-            {t.players.p1 with prisoners = (c, r, n_stones t) :: t.players.p1.prisoners},
+            let p1_pris' = (c, r, n_stones t) :: t.players.p1.prisoners in
+            {t.players.p1 with prisoners = p1_pris'},
             t.players.p2,
             {t.board with white = remove_cr t (c,r)}
           | Black -> 
+            let p2_pris' = (c, r, n_stones t) :: t.players.p2.prisoners in
             t.players.p1,
-            {t.players.p2 with prisoners = (c, r, n_stones t) :: t.players.p2.prisoners},
+            {t.players.p2 with prisoners = p2_pris'},
             {t.board with black = remove_cr t (c,r)}
         in
         let players' = {p1 = p1'; p2 = p2'} in
@@ -376,6 +386,8 @@ let self_sacrifice t pos =
   then raise SelfCaptureException 
   else ()
 
+(** TODO: look over docu *)
+
 let handicap t lst = 
   let n, placements = List.fold_left (fun (n, acc) (c,r) -> (n + 1, (c, r, n) :: acc)) (1, []) lst in
   let board' = {t.board with black = placements} in
@@ -384,10 +396,7 @@ let handicap t lst =
 
 let new_player t time =
   let (byoyomi, game_time) = deduct_time t time in
-  let p = cur_player t in { 
-    p with byoyomi = byoyomi; 
-           game_time = game_time;
-  }
+  let p = cur_player t in {p with byoyomi = byoyomi; game_time = game_time;}
 
 let new_players t time move = 
   let placement = match move with
@@ -445,17 +454,20 @@ let new_config t =
     to a 'pass' command. This is used in determining the GameEndException *)
 let game_end t = 
   let num_stones  = n_stones t in 
-  let p = 
+  let pris = 
     if (turn t) = Black then lst_head_h t.players.p1.prisoners 
     else lst_head_h t.players.p2.prisoners 
   in
-  let p_curr_stone = match p with 
+  let p_curr_stone = match pris with 
     | (_ ,_ , l) -> l
   in 
-  let p_pos = match p with 
+  let p_pos = match pris with 
     | (x, y, _) -> (x, y)
   in 
-  num_stones = p_curr_stone && (-1, -1) = p_pos
+  let pris1_len = List.length t.players.p1.prisoners in
+  let pris2_len = List.length t.players.p2.prisoners in
+  num_stones = p_curr_stone && (-1, -1) = p_pos 
+  && not (0 != pris1_len || 0 != pris2_len)
 
 let step t move time = 
   let board' = match move with 
@@ -470,7 +482,7 @@ let step t move time =
     config = config'
   } in
   match move with
-  | None ->if game_end t then raise GameEndException else t'
+  | None -> if game_end t' then raise GameEndException else t'
   | Some p -> 
     let t'' = remove_prisoners t' p in
     self_sacrifice t'' p; t''
