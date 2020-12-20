@@ -23,7 +23,7 @@ exception StoneAlreadyExists
     - Quit will quit the game application 
     - Print will print the current contents of the board 
     - Score prints the current score of each player
-    - Undo restore the game to the beginning of the previous player's turn
+    - Undo restores the game to the beginning of the previous player's turn
         excluding time*)
 type command = 
   | Pass
