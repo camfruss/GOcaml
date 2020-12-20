@@ -462,7 +462,7 @@ let step t move time =
     config = config'
   } in
   match move with
-  | None ->if move = None && game_end t then raise GameEndException else t'
+  | None ->if game_end t then raise GameEndException else t'
   | Some p -> 
     let t'' = remove_prisoners t' p in
     self_sacrifice t'' p; t''
