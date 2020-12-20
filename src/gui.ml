@@ -543,9 +543,13 @@ and eval_board event game t0 =
   if event.keypressed then
     match event.key with 
     | 'i' -> set_info game; user_input Info ~game:game ~time:t0
-    | 'p' -> 
-      let game' = step game None t0 in
-      user_input Board ~game:game'
+    | 'p' -> begin
+        try
+          let game' = step game None t0 in
+          user_input Board ~game:game'
+        with 
+        | GameEndException -> set_main (); user_input Main (** TODO *)
+      end
     | 's' -> set_score game; user_input ScoredBoard ~game:game ~time:t0
     | 'u' -> user_input Board ~game:(set_game (undo game) 0) ~time:t0
     | _ -> user_input Board ~game:game ~time:t0  

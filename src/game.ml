@@ -467,7 +467,7 @@ let game_end t =
   let pris1_len = List.length t.players.p1.prisoners in
   let pris2_len = List.length t.players.p2.prisoners in
   num_stones = p_curr_stone && (-1, -1) = p_pos 
-  && not (0 != pris1_len || 0 != pris2_len)
+  && not (0 = pris1_len || 0 = pris2_len)
 
 let step t move time = 
   let board' = match move with 
