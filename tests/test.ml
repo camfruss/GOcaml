@@ -2,6 +2,23 @@ open Command
 open Game
 open OUnit2
 
+(** [cmp_set_like_lists lst1 lst2] compares two lists to see whether
+    they are equivalent set-like lists.  That means checking two things.
+    First, they must both be {i set-like}, meaning that they do not
+    contain any duplicates.  Second, they must contain the same elements,
+    though not necessarily in the same order. *)
+let cmp_set_like_lists lst1 lst2 =
+  let uniq1 = List.sort_uniq compare lst1 in
+  let uniq2 = List.sort_uniq compare lst2 in
+  List.length lst1 = List.length uniq1
+  &&
+  List.length lst2 = List.length uniq2
+  &&
+  uniq1 = uniq2
+
+(** [pp_string s] pretty-prints string [s]. *)
+let pp_string s = "\"" ^ s ^ "\""
+
 (** [cmp_values] is an oUnit Test to determine whether [v1] equals [v2]. *)
 let cmp_values name v1 v2 = 
   name >:: (fun _ -> assert_equal v1 v2)
@@ -24,6 +41,8 @@ let load_game file =
 
 (* All the game files *)
 let empty_5 = load_game "games/5.json"
+let empty_7 = load_game "games/7.json"
+let empty_11 = load_game "games/11.json"
 let empty_19 = load_game "games/19.json"
 let game_one = load_game "games/game_one.json"
 let corner = load_game "games/corner.json"
@@ -126,7 +145,16 @@ let game_tests = [
     (last_stone (step empty_19 None 1)); (* <- TODO: crashing *)
 
   (* Handicap tests *)
-  cmp_values "0 handicap" (handicap_c empty_19 0) [];
+  cmp_values "star_location, empty_7" (star_locations empty_7) (2, 4, 3);
+  cmp_values "star_location, empty_19" (star_locations empty_19) (3, 15, 9);
+
+  cmp_values "0 handicap, empty_19" (handicap_c empty_19 0) [];
+  cmp_values "5 handicap, empty_11" 
+    (cmp_set_like_lists (handicap_c empty_11 5) 
+       [(2, 2); (2, 8); (5, 5); (8, 8); (8, 2)]) true;
+  cmp_values "7 handicap, empty_11" 
+    (cmp_set_like_lists (handicap_c empty_11 7) 
+       [(2, 2); (2, 8); (5, 5); (8, 8); (8, 2); (2, 5); (8, 5)]) true;  
 ]
 
 let suite =
