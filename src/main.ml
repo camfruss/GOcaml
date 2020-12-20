@@ -22,6 +22,8 @@ let welcome_message =
     to print the current score 
   - undo
     to undo the previous player's move
+  - forfeit
+    to forfeit the game :( 
 
   If you ever want to quit the terminal, press ^D (control D).
   |}
@@ -39,6 +41,10 @@ let score_str (a, b) =
 (** TODO *)
 let print color message = 
   ANSITerminal.(print_string [color] message)
+
+(** TODO *)
+let board_size_message = 
+  "Please choose from these board sizes: [5,7,9,11,13,19]"
 
 (** [play game t] manages each turn, parsing input, and displaying helpful 
     information to the terminal. [t] is the UNIX time this move started. *)
@@ -95,9 +101,9 @@ let rec play game t0 =
 let main () =
   ANSITerminal.(
     print_string [green] welcome_message;
-    print_string [green]
-      "Please enter the name of the game file you wish to load.";
-    print_string [default] "\n>");
+    print_string [cyan]
+      "Would you like to play a [new] game or [load] saved game?";
+    print_string [default] "\n> ");
   let rec init () = 
     match read_line () with
     | exception End_of_file -> ()
@@ -107,6 +113,38 @@ let main () =
         ANSITerminal.
           (print_string [red] "Please enter a valid GOCaml file." ;
            print_string [default] "\n> "); init ()
-  in init ()
+  in
+  let rec new_game () = 
+    match read_line () with 
+    | exception End_of_file -> ()
+    | f -> 
+      match  int_of_string_opt f with 
+      | None -> 
+        ANSITerminal.
+          (print_string [red] board_size_message;
+           print_string [default] "\n> "); new_game ()
+      | Some i -> 
+        if List.mem i [5;7;9;11;13;19] then 
+          let game_file = "games/" ^ string_of_int i ^ ".json" in 
+          play (Yojson.Basic.from_file game_file |> from_json) (time ())
+        else ANSITerminal.
+               (print_string [red] board_size_message;
+                print_string [default] "\n> "); new_game ()
+  in 
+  let rec new_load () =
+    match read_line () with
+    | exception End_of_file -> print_endline "oops"; ()
+    | "new" -> ANSITerminal.
+                 (print_string [cyan] board_size_message;
+                  print_string [default] "\n> "); new_game ()
+    | "load" -> ANSITerminal.
+                  (print_string [cyan] 
+                     "Please enter GOcaml file name.";
+                   print_string [default] "\n> "); init ()
+    | f ->  ANSITerminal.
+              (print_string [red] "Please choose 'new' or 'load'.";
+               print_string [default] "\n> "); new_load ()
+  in 
+  new_load ()
 
 let () = main ()
