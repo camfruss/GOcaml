@@ -237,6 +237,19 @@ let setup_input input =
   moveto (300 + 12) (255 + 15); 
   draw_string input
 
+let show_error error = 
+  font_size 20;
+  set_color red;
+  let message = match error with
+    | KoException -> "Ko Exception: "
+    | SelfCaptureException -> "Self Capture Exception: "
+    | StoneAlreadyExistsException -> "Stone Already Exists Exception: "
+    | TimeExpiredException -> "Time Expired Exception: "
+    | _ -> "Unknown Exception: "
+  in 
+  moveto (2 * !b_dims.spacing) 15;
+  draw_string (message ^ "This is an illegal move.")
+
 (** [setup_dims game] determines the optimal window dimensions and line spacing 
     for the graphical user interface given game [game]. 
     Requires: this function must be called before all other game or window 
@@ -404,7 +417,9 @@ let rec user_input ?game:(game = default_game) ?time:(time = time ())
     display  =
   let event = wait_next_event [Key_pressed; Button_down] in
   if event.keypressed || event.button then
-    if event.key = 'q' then exit 0 
+    if event.key = 'q' then 
+      if display = Main then exit 0 
+      else (set_main (); user_input Main)
     else match display with
       | Main -> eval_main event
       | GOcamlInfo -> eval_gocaml_info event
@@ -469,7 +484,8 @@ and accept_input ?game:(game = default_game) event display =
   match display with 
   | Handicap -> begin 
       try 
-        let game' = int_of_string !str |> set_game game in
+        let h = if !str = "" then 0 else int_of_string !str in
+        let game' = set_game game h in
         user_input Board ~game:game'
       with
       | _ -> setup_input ""; user_input Handicap ~game:game
@@ -512,13 +528,10 @@ and eval_board_click event game t0 =
     draw_stone actual_x actual_y !b_dims.radius c1;
     draw_ring actual_x actual_y c1 c2;
     prev_ring game `Remove;
-    ignore (set_game game' 0);
+    ignore (set_game game' 0);  (** TODO: on set_game, remove error message *)
     user_input Board ~game:game' ~time:t1
   with 
-  | KoException -> user_input Board ~game:game ~time:t0 
-  | SelfCaptureException -> user_input Board ~game:game ~time:t0 
-  | StoneAlreadyExistsException -> user_input Board ~game:game ~time:t0 
-  | TimeExpiredException -> () (* TODO *)
+  | err -> show_error err; user_input Board ~game:game ~time:t0 
 
 and eval_scored_board event game t0 =
   if event.keypressed then
@@ -533,7 +546,7 @@ and eval_info event game t0 =
     | 'i' -> user_input Board ~game:(set_game game 0) ~time:t0
     | 's' -> 
       let rand_file = (Printf.sprintf "./games/%s.json" (random_string 10)) in
-      to_json game rand_file; exit 0 (* TODO *)
+      to_json game rand_file; exit 0
     | _ -> user_input Info ~game:game ~time:t0
 
 let main () =

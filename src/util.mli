@@ -1,3 +1,6 @@
+(** Util is a compilation of helper functions useful in the implementation of 
+    GOcaml, but with very general applications that may be useful in other 
+    scenarios. *)
 
 (** [combine_t op t1 t2] combines the elements of each tuple according to 
     [op]. *)

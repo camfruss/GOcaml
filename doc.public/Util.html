@@ -26,13 +26,20 @@
 
 <pre><span id="MODULEUtil"><span class="keyword">module</span> Util</span>: <code class="code">sig</code> <a href="Util.html">..</a> <code class="code">end</code></pre><div class="info module top">
 <div class="info-desc">
-<p><code class="code">combine_t op t1 t2</code> combines the elements of each tuple according to 
-    <code class="code">op</code>.</p>
+<p>Util is a compilation of helper functions useful in the implementation of 
+    GOcaml, but with very general applications that may be useful in other 
+    scenarios.</p>
 </div>
 </div>
 <hr width="100%">
 
-<pre><span id="VALcombine_t"><span class="keyword">val</span> combine_t</span> : <code class="type">('a -> 'b -> 'c) -> 'a * 'a -> 'b * 'b -> 'c * 'c</code></pre>
+<pre><span id="VALcombine_t"><span class="keyword">val</span> combine_t</span> : <code class="type">('a -> 'b -> 'c) -> 'a * 'a -> 'b * 'b -> 'c * 'c</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">combine_t op t1 t2</code> combines the elements of each tuple according to 
+    <code class="code">op</code>.</p>
+</div>
+</div>
+
 <pre><span id="VALstring_of_list"><span class="keyword">val</span> string_of_list</span> : <code class="type">('a -> string) -> 'a list -> string</code></pre><div class="info ">
 <div class="info-desc">
 <p><code class="code">string_of_list cast lst</code> concatenates all the elements in <code class="code">lst</code> to a single 

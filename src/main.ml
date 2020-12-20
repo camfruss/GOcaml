@@ -33,8 +33,12 @@ let forfeit_message game =
   | Black -> "Player 1 has forfeit. \nPlayer 2 has won the game!" 
   | White -> "Player 2 has forfeit. \nPlayer 1 has won the game!" 
 
-let score_str (a,b) = 
+let score_str (a, b) = 
   "player 1: " ^ string_of_float(a) ^ "\nplayer 2: " ^ string_of_float(b)
+
+(** TODO *)
+let print color message = 
+  ANSITerminal.(print_string [color] message)
 
 (** [play game t] manages each turn, parsing input, and displaying helpful 
     information to the terminal. [t] is the UNIX time this move started. *)
@@ -60,36 +64,31 @@ let rec play game t0 =
       end
   with 
   | Empty -> 
-    ANSITerminal.(print_string [red] "You didn't type anything! Try again! \n"); 
+    print ANSITerminal.red "You didn't type anything! Try again! \n"; 
     play game t0
   | Deformed -> 
-    ANSITerminal.(print_string [red] "That's not a valid command! \n");
+    print ANSITerminal.red "That's not a valid command! \n";
     play game t0
   | GoOutOfBounds ->
-    ANSITerminal.(
-      print_string [red] "The position is out of the game bounds \n"); 
+    print ANSITerminal.red "The position is out of the game bounds \n"; 
     play game t0
   | StoneAlreadyExists ->
-    ANSITerminal.(
-      print_string [red]"A stone already exists in that location. \n");
+    print ANSITerminal.red "A stone already exists in that location. \n";
     play game t0
   | KoException -> 
-    ANSITerminal.(
-      print_string [red]"You cannot place a stone here. The move causes a Ko violation. \n");
+    print ANSITerminal.red "You cannot place a stone here. The move causes a Ko violation. \n";
     play game t0
   | SelfCaptureException -> 
-    ANSITerminal.(
-      print_string [red]"You cannot play there. That would cause a Self Capture \n");
+    print ANSITerminal.red "You cannot play there. That would cause a Self Capture \n";
     play game t0
   | GameEndException -> 
     let p1_score = fst (score game) in 
     let p2_score = snd (score game) in 
     let winner = if p1_score > p2_score then fst (names game) else snd (names game) in
-    ANSITerminal.(
-      print_string [blue]("Two playes have passed, the game is now over!\nThe winner is " 
-                          ^ winner ^ "\nPlayer1: " ^ string_of_float(p1_score) 
-                          ^ "\nPlayer2: " 
-                          ^ string_of_float(p2_score)^"\n"));
+    print ANSITerminal.blue 
+      ("Two playes have passed, the game is now over!\nThe winner is " 
+       ^ winner ^ "\nPlayer1: " ^ string_of_float p1_score ^ "\nPlayer2: " 
+       ^ string_of_float p2_score ^ "\n");
     exit 0
 
 (** [main] prompts for the game to play, then starts it. *)

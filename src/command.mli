@@ -1,4 +1,7 @@
 
+(** Command interprets user input when playing the terminal version of 
+    GOcaml. *)
+
 (** [Deformed] is raised when a player's input is not in the correct format. *)
 exception Deformed
 
