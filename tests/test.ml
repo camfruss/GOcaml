@@ -47,6 +47,7 @@ let empty_19 = load_game "games/19.json"
 let game_one = load_game "games/game_one.json"
 let corner = load_game "games/corner.json"
 let territories = load_game "games/territories.json"
+let error_test = load_game "games/error_test.json"
 
 let command_tests = [
   (* Converting string location to integer tuple *)
@@ -155,6 +156,16 @@ let game_tests = [
   cmp_values "7 handicap, empty_11" 
     (cmp_set_like_lists (handicap_c empty_11 7) 
        [(2, 2); (2, 8); (5, 5); (8, 8); (8, 2); (2, 5); (8, 5)]) true;  
+
+  (* Invalid Input test *)
+  test_raises2 "SelfCaptureException" (step error_test) (Some (0, 0)) 0 
+    SelfCaptureException;
+  test_raises2 "StoneAlreadyExists" (step error_test) (Some (0, 1)) 0 
+    StoneAlreadyExistsException;
+
+  (* UNDO *)
+
+  (* SCORE *)
 ]
 
 let suite =

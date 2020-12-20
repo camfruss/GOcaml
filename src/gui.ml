@@ -518,9 +518,13 @@ and accept_input ?game:(game = default_game) event display =
       with
       | _ -> setup_input ""; user_input Handicap ~game:game
     end
-  | FileLoad -> 
-    let game = Yojson.Basic.from_file ("./games/" ^ !str) |> from_json 
-    in user_input Board ~game:(set_game game 0)
+  | FileLoad -> begin
+      try 
+        let game = Yojson.Basic.from_file ("./games/" ^ !str) |> from_json 
+        in user_input Board ~game:(set_game game 0)
+      with
+      | _ -> set_file_load (); user_input FileLoad
+    end
   | _ -> failwith "precondition violated"
 
 (** [eval_handicap e g] allows the user to enter the handicap amount for the 

@@ -8,3 +8,4 @@ docs.public/
 *.byte
 *.cmi
 *.cmo
+*.coverage

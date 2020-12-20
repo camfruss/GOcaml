@@ -187,7 +187,7 @@ let to_json t out_file =
       }|} (from_players t.players) (from_board t.board) (from_config t.config)
   in 
   let out_file' = 
-    if String.sub out_file (String.length out_file - 5) 5 != ".json" 
+    if String.sub out_file (String.length out_file - 5) 5 <> ".json" 
     then out_file ^ ".json" else out_file in 
   let oc = open_out out_file' in
   Printf.fprintf oc "%s\n" content;
