@@ -1,5 +1,7 @@
 # ocamlbuild targets
 _build/
+_coverage/
+docs.public/
 
 .DS_Store
 

@@ -64,7 +64,7 @@ let rec play game t0 =
     | Undo -> play (undo game) t0
     | Save s -> begin
         let exists = Sys.file_exists s in 
-        if not exists then to_json game s 
+        if not exists then (to_json game s; print_endline exit_message; exit 0)
         else (print_endline "A file with this name already exists."; 
               print_endline "Please choose a different name."; play game t0)
       end
@@ -128,7 +128,7 @@ let main () =
           (print_string [red] board_size_message;
            print_string [default] "\n> "); new_game ()
       | Some i -> 
-        if List.mem i [5;7;9;11;13;19] then 
+        if List.mem i [5; 7; 9; 11; 13; 19] then 
           let game_file = "games/" ^ string_of_int i ^ ".json" in 
           play (Yojson.Basic.from_file game_file |> from_json) (time ())
         else ANSITerminal.

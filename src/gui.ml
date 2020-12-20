@@ -170,9 +170,12 @@ let setup_main_buttons button1 button2 =
   set_color black; 
   fill_rect 215 265 150 60;
   fill_rect 435 265 150 60;
-  font_size 32; set_color white; 
-  moveto 250 277; draw_string button1;
-  moveto 470 277; draw_string button2
+  font_size 32; 
+  set_color white; 
+  moveto 250 277; 
+  draw_string button1;
+  moveto 470 277; 
+  draw_string button2
 
 (** [main_button_press e] determines which button, if any, was clicked according
     to [event] and returns whether the left or right pseudo-button was tapped 
@@ -186,7 +189,8 @@ let main_button_press event =
   else if y_fit && x2_fit then `Right
   else `None
 
-(** TODO *)
+(** [setup_size_buttons] is the 5 buttons that allow a user to select a new 
+    GOcaml game from the default board sizes. *)
 let setup_size_buttons () = 
   font_size 32;
   let sizes = Array.of_list ["7"; "9"; "11"; "13"; "19"] in
@@ -198,7 +202,8 @@ let setup_size_buttons () =
     draw_string sizes.(i)
   done
 
-(** TODO *)
+(** [size_button_press event] is the size of the board corresponding to the 
+    button pressed as initialized in [setup_size_buttons]. *)
 let size_button_press event = 
   let x, y = event.mouse_x, event.mouse_y in
   let size_map = [(0, 7); (1, 9); (2, 11); (3, 13); (4, 19)] in
@@ -217,7 +222,8 @@ let setup_message ?fs:(fs = 24) message =
   moveto (window_size / 2 - 250) (window_size / 2 + 20);
   draw_string message
 
-(** TODO *)
+(** [setup_messages ?fs ?x messages] is a multiline message with font_size [fs] 
+    starting at the x coordinate [x]. *)
 let setup_messages ?fs:(fs = 18) ?x:(x = 150) messages = 
   font_size fs;
   set_color black;
@@ -237,7 +243,9 @@ let setup_input input =
   moveto (300 + 12) (255 + 15); 
   draw_string input
 
-let show_error error = 
+(** [show_error error] displays the error message corresponding to [error] on 
+    the GUI. *)
+let show_error error =  
   font_size 20;
   set_color red;
   let message = match error with
@@ -356,6 +364,8 @@ let set_score game =
     done
   done
 
+(** [set_default] is the default screen display when the board is not being 
+    show. *)
 let set_default () = 
   clear_graph ();
   setup_background background_color;
@@ -366,25 +376,35 @@ let set_main () =
   set_default ();
   setup_main_buttons "PLAY" "INFO"
 
+(** [set_gocaml_info] is the window with information about GOcaml and how to 
+    play. *)
 let set_gocaml_info () = 
   set_default ();
   setup_messages info_message
 
+(** [set_load_game] is the screen prompting the user whether to play a new 
+    game or one loaded from a pre-existing file *)
 let set_load_game () = 
   set_default ();
   setup_message "Would you like to play a new or old GOcaml game?";
   setup_main_buttons "NEW" "OLD"
 
+(** [set_board_size] is the screen prompting the user to select the board size 
+    for a new game. *)
 let set_board_size () =
   set_default ();
   setup_message "Please select from the default GOcaml board sizes";
   setup_size_buttons ()
 
+(** [set_handicap] is the input screen allowing the user to enter the handicap, 
+    if any. *)
 let set_handicap () =
   set_default ();
   setup_message "Please enter the black stone's handicap, if any";
   setup_input ""; ()
 
+(** [set_file_load] is the screen prompting a user to load a file from 
+    [./games/] as a pre-existing game. *)
 let set_file_load () = 
   set_default ();
   setup_message "Please enter the GOcaml file name you want to load";
@@ -408,7 +428,8 @@ let set_info game =
   setup_messages m2 ~fs:24 ~x:350;
   setup_messages m3 ~fs:24 ~x:550
 
-(** TODO *)
+(** [default_game] is the default game provided as a default argument for 
+    [user_input]. *)
 let default_game = Yojson.Basic.from_file "games/19.json" |> from_json
 
 (** [user_input game t] listens for user input and updates the game 
@@ -431,7 +452,8 @@ let rec user_input ?game:(game = default_game) ?time:(time = time ())
       | ScoredBoard -> eval_scored_board event game time
       | Info -> eval_info event game time
 
-(** TODO *)
+(** [eval_main event] updates the window based on event [event] when on the 
+    display [Main]. *)
 and eval_main event =
   let k, b = event.key, main_button_press event in
   match k, b with
@@ -439,13 +461,15 @@ and eval_main event =
   | 'i', _ | _, `Right -> set_gocaml_info (); user_input GOcamlInfo
   | _, _ -> user_input Main
 
-(** TODO *)
+(** [eval_gocaml_info event] updates the window based on event [event] when on 
+    the display [GOcamlInfo]. *)
 and eval_gocaml_info event = 
   match event.key with
   | 'b' -> set_main (); user_input Main
   | _ -> user_input GOcamlInfo
 
-(** TODO *)
+(** [eval_load_game event] updates the window based on event [event] when on the
+    display [LoadGame]. *)
 and eval_load_game event = 
   let k, b = event.key, main_button_press event in
   match k, b with
@@ -454,6 +478,8 @@ and eval_load_game event =
   | 'o', _ | _, `Right -> set_file_load (); user_input FileLoad
   | _, _ -> user_input LoadGame
 
+(** [eval_board_size event] updates the window based on event [event] when on 
+    the display [BoardSize]. *)
 and eval_board_size event = 
   if event.keypressed then 
     match event.key with
@@ -467,7 +493,9 @@ and eval_board_size event =
       let game = Yojson.Basic.from_file file |> from_json in
       set_handicap (); user_input Handicap ~game:(game)
 
-(* TODO *)
+(** [accept_input ?game event display] allows the user to input text on the 
+    display [display] with the optional [game] already loaded. Pressing [RETURN]
+    processes the inputted text. *)
 and accept_input ?game:(game = default_game) event display =
   let event = ref event in
   let break = ref false in
@@ -495,12 +523,18 @@ and accept_input ?game:(game = default_game) event display =
     in user_input Board ~game:(set_game game 0)
   | _ -> failwith "precondition violated"
 
+(** [eval_handicap e g] allows the user to enter the handicap amount for the 
+    new game [g]. *)
 and eval_handicap event game =
   accept_input ~game:game event Handicap
 
+(** [eval_file_load e] allows the user to enter the file to load for a 
+    pre-existing game. *)
 and eval_file_load event =
   accept_input event FileLoad
 
+(** [eval_board e g t] handles any key presses when the display is currently on 
+    [Board] and the player has taken [t0] so far on their move. *)
 and eval_board event game t0 =
   if event.keypressed then
     match event.key with 
@@ -514,6 +548,8 @@ and eval_board event game t0 =
   else 
     eval_board_click event game t0
 
+(** [eval_board_click e g t] handles any mouse clicks when the board is on 
+    [Board] and updates the game [g] accordingly. *)
 and eval_board_click event game t0 = 
   let column = index event.mouse_x X in
   let row = index event.mouse_y Y in
@@ -528,11 +564,13 @@ and eval_board_click event game t0 =
     draw_stone actual_x actual_y !b_dims.radius c1;
     draw_ring actual_x actual_y c1 c2;
     prev_ring game `Remove;
-    ignore (set_game game' 0);  (** TODO: on set_game, remove error message *)
+    ignore (set_game game' 0);
     user_input Board ~game:game' ~time:t1
   with 
   | err -> show_error err; user_input Board ~game:game ~time:t0 
 
+(** [eval_scored_board e g t] handles user input when the board is currently 
+    scored. *)
 and eval_scored_board event game t0 =
   if event.keypressed then
     match event.key with
@@ -540,6 +578,7 @@ and eval_scored_board event game t0 =
     | 's' -> ignore (set_game game 0); user_input Board ~game:game ~time:t0
     | _ -> user_input ScoredBoard ~game:game ~time:t0
 
+(** [eval_info e g t] handles user input when the display is [Info]. *)
 and eval_info event game t0 = 
   if event.keypressed then
     match event.key with 
