@@ -83,6 +83,10 @@ let rec play game t0 =
     ANSITerminal.(
       print_string [red]"You cannot play there. That would cause a Self Capture \n");
     play game t0
+  | GameEndException -> 
+    ANSITerminal.(
+      print_string [red]"Two playes have passed, the game is now over!\n");
+    exit 0
 
 (** [main] prompts for the game to play, then starts it. *)
 let main () =
