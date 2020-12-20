@@ -298,7 +298,8 @@ let setup_axis () =
     for j = 0 to 1 do
       let offset = if j = 0 then 0 else !b_dims.length in
       for i = 0 to !b_dims.board_size - 1 do
-        let loc = ((2 + i) * !b_dims.spacing), (offset - !b_dims.spacing |> Int.abs) in
+        let loc = 
+          ((2 + i) * !b_dims.spacing), (offset - !b_dims.spacing |> Int.abs) in
         let s = match axis, loc with
           | X, (x, y) ->
             let y_offset = if j = 1 then 16 else 5 in

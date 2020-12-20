@@ -389,7 +389,8 @@ let self_sacrifice t pos =
 (** TODO: look over docu *)
 
 let handicap t lst = 
-  let n, placements = List.fold_left (fun (n, acc) (c,r) -> (n + 1, (c, r, n) :: acc)) (1, []) lst in
+  let n, placements = List.fold_left (fun (n, acc) (c,r) -> 
+      (n + 1, (c, r, n) :: acc)) (1, []) lst in
   let board' = {t.board with black = placements} in
   let config' = {t.config with turn = 'w'} 
   in {t with board = board'; config = config'}
@@ -404,8 +405,12 @@ let new_players t time move =
     | Some pos -> `Place
   in
   let pn = match placement, turn t with 
-    | `Pass, Black -> {t.players.p2 with prisoners = (-1, -1, n_stones t) :: t.players.p2.prisoners}
-    | `Pass, White -> {t.players.p1 with prisoners = (-1, -1, n_stones t) :: t.players.p1.prisoners}
+    | `Pass, Black -> 
+      {t.players.p2 with prisoners = 
+                           (-1, -1, n_stones t) :: t.players.p2.prisoners}
+    | `Pass, White -> 
+      {t.players.p1 with prisoners = 
+                           (-1, -1, n_stones t) :: t.players.p1.prisoners}
     | `Place, Black -> new_player t time
     | `Place, White -> new_player t time
   in 
