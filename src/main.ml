@@ -94,7 +94,8 @@ let rec play game t0 =
   | GameEndException -> 
     let p1_score = fst (score game) in 
     let p2_score = snd (score game) in 
-    let winner = if p1_score > p2_score then fst (names game) else snd (names game) in
+    let winner = if p1_score > p2_score then fst (names game) else 
+        snd (names game) in
     print ANSITerminal.blue 
       ("Two playes have passed, the game is now over!\nThe winner is " 
        ^ winner ^ "\nPlayer1: " ^ string_of_float p1_score ^ "\nPlayer2: " 
