@@ -10,6 +10,7 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Authors" rel="Chapter" href="Authors.html">
 <link title="Game" rel="Chapter" href="Game.html">
+<link title="Command" rel="Chapter" href="Command.html">
 <link title="Main" rel="Chapter" href="Main.html">
 <link title="Gui" rel="Chapter" href="Gui.html">
 <link title="Util" rel="Chapter" href="Util.html"><title>Index of exceptions</title>
@@ -19,6 +20,31 @@
 &nbsp;</div>
 <h1>Index of exceptions</h1>
 <table>
+<tr><td align="left"><div>D</div></td></tr>
+<tr><td><a href="Command.html#EXCEPTIONDeformed">Deformed</a> [<a href="Command.html">Command</a>]</td>
+<td></td></tr>
+<tr><td align="left"><div>E</div></td></tr>
+<tr><td><a href="Command.html#EXCEPTIONEmpty">Empty</a> [<a href="Command.html">Command</a>]</td>
+<td><div class="info">
+<p><code class="code">Empty</code> is raised when the players input is empty.</p>
+
+</div>
+</td></tr>
+<tr><td align="left"><div>G</div></td></tr>
+<tr><td><a href="Game.html#EXCEPTIONGameEndException">GameEndException</a> [<a href="Game.html">Game</a>]</td>
+<td><div class="info">
+<p><code class="code">GameEndException</code> is raised when two players consecutively pass which 
+    signals the game is over</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Command.html#EXCEPTIONGoOutOfBounds">GoOutOfBounds</a> [<a href="Command.html">Command</a>]</td>
+<td><div class="info">
+<p><code class="code">GoOutOfBounds</code> is raised when the stones being places exceeds the valid 
+    bounds of the board.</p>
+
+</div>
+</td></tr>
 <tr><td align="left"><div>K</div></td></tr>
 <tr><td><a href="Game.html#EXCEPTIONKoException">KoException</a> [<a href="Game.html">Game</a>]</td>
 <td><div class="info">
@@ -32,6 +58,13 @@
 <td><div class="info">
 <p><code class="code">SelfCaptureException</code> is raised when a player attempt to place a stone in a
     position that is immediately captured.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Command.html#EXCEPTIONStoneAlreadyExists">StoneAlreadyExists</a> [<a href="Command.html">Command</a>]</td>
+<td><div class="info">
+<p><code class="code">StoneAlreadyExists</code> is raised when a player attempts to place a 
+    stone on top of an existing stone.</p>
 
 </div>
 </td></tr>

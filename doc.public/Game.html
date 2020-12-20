@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Authors.html">
-<link rel="next" href="Main.html">
+<link rel="next" href="Command.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -14,6 +14,7 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Authors" rel="Chapter" href="Authors.html">
 <link title="Game" rel="Chapter" href="Game.html">
+<link title="Command" rel="Chapter" href="Command.html">
 <link title="Main" rel="Chapter" href="Main.html">
 <link title="Gui" rel="Chapter" href="Gui.html">
 <link title="Util" rel="Chapter" href="Util.html"><title>Game</title>
@@ -21,7 +22,7 @@
 <body>
 <div class="navbar"><a class="pre" href="Authors.html" title="Authors">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
-&nbsp;<a class="post" href="Main.html" title="Main">Next</a>
+&nbsp;<a class="post" href="Command.html" title="Command">Next</a>
 </div>
 <h1>Module <a href="type_Game.html">Game</a></h1>
 
@@ -145,6 +146,14 @@
 </div>
 </div>
 
+<pre><span id="EXCEPTIONGameEndException"><span class="keyword">exception</span> GameEndException</span></pre>
+<div class="info ">
+<div class="info-desc">
+<p><code class="code">GameEndException</code> is raised when two players consecutively pass which 
+    signals the game is over</p>
+</div>
+</div>
+
 <pre><span id="VALfrom_json"><span class="keyword">val</span> from_json</span> : <code class="type">Yojson.Basic.t -> <a href="Game.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p><code class="code">from_json json</code> is the Go game that <code class="code">json</code> represents.
@@ -220,6 +229,21 @@
 </div>
 </div>
 
+<pre><span id="VALstar_locations"><span class="keyword">val</span> star_locations</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> int * int * int</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">star_locations t</code> are the three possible locations for a star point on a Go 
+    board. Star points act as a reference for Go boards and mark where handicap 
+    stones, if any, are placed.</p>
+</div>
+</div>
+
+<pre><span id="VALhandicap_c"><span class="keyword">val</span> handicap_c</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> int -> (int * int) list</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">handicap_c t h</code> is the positions of <code class="code">h</code> handicap stones on the board in 
+    <code class="code">t</code>.</p>
+</div>
+</div>
+
 <pre><span id="VALhandicap"><span class="keyword">val</span> handicap</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> (int * int) list -> <a href="Game.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p><code class="code">handicap t lst</code> places the handicap stones specified in <code class="code">lst</code> on the board. 
@@ -257,8 +281,15 @@
 
 <pre><span id="VALundo"><span class="keyword">val</span> undo</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> <a href="Game.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
-<p><code class="code">undo t </code> reverts to the game at beginning of the previous
+<p><code class="code">undo t</code> reverts to the game at beginning of the previous
     player's turn excluding time.</p>
+</div>
+</div>
+
+<pre><span id="VALgame_message"><span class="keyword">val</span> game_message</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> string list * string list * string list</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">game_message t</code> describes all the relevant information about <code class="code">t</code> 
+    corresponding to the stat name, player 1 value, and player 2 value.</p>
 </div>
 </div>
 </body></html>

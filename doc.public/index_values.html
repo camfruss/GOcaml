@@ -10,6 +10,7 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Authors" rel="Chapter" href="Authors.html">
 <link title="Game" rel="Chapter" href="Game.html">
+<link title="Command" rel="Chapter" href="Command.html">
 <link title="Main" rel="Chapter" href="Main.html">
 <link title="Gui" rel="Chapter" href="Gui.html">
 <link title="Util" rel="Chapter" href="Util.html"><title>Index of values</title>
@@ -49,10 +50,25 @@
 
 </div>
 </td></tr>
+<tr><td align="left"><div>G</div></td></tr>
+<tr><td><a href="Game.html#VALgame_message">game_message</a> [<a href="Game.html">Game</a>]</td>
+<td><div class="info">
+<p><code class="code">game_message t</code> describes all the relevant information about <code class="code">t</code> 
+    corresponding to the stat name, player 1 value, and player 2 value.</p>
+
+</div>
+</td></tr>
 <tr><td align="left"><div>H</div></td></tr>
 <tr><td><a href="Game.html#VALhandicap">handicap</a> [<a href="Game.html">Game</a>]</td>
 <td><div class="info">
 <p><code class="code">handicap t lst</code> places the handicap stones specified in <code class="code">lst</code> on the board.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Game.html#VALhandicap_c">handicap_c</a> [<a href="Game.html">Game</a>]</td>
+<td><div class="info">
+<p><code class="code">handicap_c t h</code> is the positions of <code class="code">h</code> handicap stones on the board in 
+    <code class="code">t</code>.</p>
 
 </div>
 </td></tr>
@@ -74,6 +90,12 @@
 <td><div class="info">
 <p><code class="code">is_empty t pos</code> is whether there is no stone current at position <code class="code">pos</code>
     in the <code class="code">t</code>.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Command.html#VAListone_pos">istone_pos</a> [<a href="Command.html">Command</a>]</td>
+<td><div class="info">
+<p><code class="code">istone_pos pos</code> is the integer position of <code class="code">pos</code>.</p>
 
 </div>
 </td></tr>
@@ -122,6 +144,13 @@
 
 </div>
 </td></tr>
+<tr><td align="left"><div>P</div></td></tr>
+<tr><td><a href="Command.html#VALparse">parse</a> [<a href="Command.html">Command</a>]</td>
+<td><div class="info">
+<p><code class="code">parse game str</code> parses a player's input into a <code class="code">command</code>.</p>
+
+</div>
+</td></tr>
 <tr><td align="left"><div>Q</div></td></tr>
 <tr><td><a href="Util.html#VALquartet_swap">quartet_swap</a> [<a href="Util.html">Util</a>]</td>
 <td><div class="info">
@@ -141,6 +170,13 @@
 <tr><td><a href="Game.html#VALscore">score</a> [<a href="Game.html">Game</a>]</td>
 <td><div class="info">
 <p><code class="code">score t</code> is the current score of the game using the territory scoring.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Game.html#VALstar_locations">star_locations</a> [<a href="Game.html">Game</a>]</td>
+<td><div class="info">
+<p><code class="code">star_locations t</code> are the three possible locations for a star point on a Go 
+    board.</p>
 
 </div>
 </td></tr>
@@ -193,7 +229,7 @@
 <tr><td align="left"><div>U</div></td></tr>
 <tr><td><a href="Game.html#VALundo">undo</a> [<a href="Game.html">Game</a>]</td>
 <td><div class="info">
-<p><code class="code">undo t </code> reverts to the game at beginning of the previous
+<p><code class="code">undo t</code> reverts to the game at beginning of the previous
     player's turn excluding time.</p>
 
 </div>

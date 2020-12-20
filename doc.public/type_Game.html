@@ -9,6 +9,7 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Authors" rel="Chapter" href="Authors.html">
 <link title="Game" rel="Chapter" href="Game.html">
+<link title="Command" rel="Chapter" href="Command.html">
 <link title="Main" rel="Chapter" href="Main.html">
 <link title="Gui" rel="Chapter" href="Gui.html">
 <link title="Util" rel="Chapter" href="Util.html"><title>Game</title>
@@ -22,6 +23,7 @@
 &nbsp;&nbsp;<span class="keyword">exception</span>&nbsp;<span class="constructor">SelfCaptureException</span><br>
 &nbsp;&nbsp;<span class="keyword">exception</span>&nbsp;<span class="constructor">StoneAlreadyExistsException</span><br>
 &nbsp;&nbsp;<span class="keyword">exception</span>&nbsp;<span class="constructor">TimeExpiredException</span><br>
+&nbsp;&nbsp;<span class="keyword">exception</span>&nbsp;<span class="constructor">GameEndException</span><br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_json&nbsp;:&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Basic</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Game</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;to_json&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;in_bounds&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;*&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool<br>
@@ -33,10 +35,13 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;stones&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Game</span>.stone&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(int&nbsp;*&nbsp;int)&nbsp;list<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;turn&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Game</span>.stone<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;names&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;string&nbsp;*&nbsp;string<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;star_locations&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;*&nbsp;int&nbsp;*&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;handicap_c&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(int&nbsp;*&nbsp;int)&nbsp;list<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;handicap&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(int&nbsp;*&nbsp;int)&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Game</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;last_stone&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;*&nbsp;int<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;step&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(int&nbsp;*&nbsp;int)&nbsp;option&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Game</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;string_of_board&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;string<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;fill_grid&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Game</span>.intersection&nbsp;array&nbsp;array<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;undo&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Game</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;game_message&nbsp;:&nbsp;<span class="constructor">Game</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;string&nbsp;list&nbsp;*&nbsp;string&nbsp;list&nbsp;*&nbsp;string&nbsp;list<br>
 <span class="keyword">end</span></code></body></html>

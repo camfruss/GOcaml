@@ -18,7 +18,7 @@ clean:
 
 docs:
 	mkdir -p doc.public
-	ocamlfind ocamldoc -I _build -package $(PKGS) \
+	ocamlfind ocamldoc -I _build/src -package $(PKGS) \
 		-html -stars -d doc.public $(MLIS)
 
 gocaml:
