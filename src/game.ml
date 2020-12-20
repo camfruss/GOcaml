@@ -9,6 +9,8 @@ exception StoneAlreadyExistsException
 
 exception TimeExpiredException
 
+exception GameEndException
+
 type stone = Black | White
 
 (** [player] is the type representing a single player in a go game. *)
@@ -272,9 +274,6 @@ let liberties t pos =
     List.map (fun c -> if is_empty t c then 1 else 0) all_adjacent 
   in List.fold_left (fun acc v -> acc + v) 0 all_liberties
 
-let ko t (c,r) = false
-(* failwith "unimplemented" *) (* TODO *)
-
 let turn t =
   if t.config.turn = 'b' then Black else White
 
@@ -398,6 +397,27 @@ let new_players t time move =
   | None, Black | Some _, White -> {t.players with p2 = pn}
   | None, White | Some _, Black -> {t.players with p1 = pn}
 
+(** [lst_head_h lst] returns the head of a list if it exists. Otherwise it 
+    returns a tuple that will not match with any player move.
+    This method is used to get the head of the prisoners list (accounts for the
+    empty list case) *)
+let lst_head_h lst = 
+  match lst with 
+  | [] -> (-1, -1, -1)
+  | h :: t -> h
+
+let ko t (c,r) = 
+  let num_stones  = n_stones t in 
+  let p = if (turn t) = Black then lst_head_h t.players.p2.prisoners else
+      lst_head_h t.players.p1.prisoners in
+  let p_curr_stone = match p with 
+    | (_,_,l) -> l
+  in 
+  let p_pos = match p with 
+    | (x,y,_) -> (x,y)
+  in 
+  (c,r) = p_pos && (num_stones = p_curr_stone) 
+
 (** [new_board t m] is the updated board for [t] after move [m]. *)
 let new_board t (c,r) = 
   if not (is_empty t (c,r)) then raise StoneAlreadyExistsException
@@ -414,6 +434,21 @@ let new_config t =
   let turn' = if (turn t) = Black then 'w' else 'b' in
   {t.config with turn = turn'}
 
+(**[game end t] checks to see if the last prisoner in the players turn was due 
+   to a 'pass' command. This is used in determining the GameEndException *)
+let game_end t = 
+  let num_stones  = n_stones t in 
+  let p = if (turn t) = Black then lst_head_h t.players.p1.prisoners else
+      lst_head_h t.players.p2.prisoners in
+  let p_curr_stone = match p with 
+    | (_,_,l) -> l
+  in 
+  let p_pos = match p with 
+    | (x,y,_) -> (x,y)
+  in 
+  (-1,-1) = p_pos && (num_stones = p_curr_stone) 
+
+
 let step t move time = 
   let board' = match move with 
     | None -> t.board
@@ -427,7 +462,7 @@ let step t move time =
     config = config'
   } in
   match move with
-  | None -> t'
+  | None ->if game_end t then raise GameEndException else t'
   | Some p -> 
     let t'' = remove_prisoners t' p in
     self_sacrifice t'' p; t''

@@ -28,6 +28,10 @@ exception StoneAlreadyExistsException
     game clock. *)
 exception TimeExpiredException
 
+(** [GameEndException] is raised when two players consecutively pass which 
+    signals the game is over *)
+exception GameEndException
+
 (** [from_json json] is the Go game that [json] represents.
     Requires: [json] is a valid json Go representation. *)
 val from_json : Yojson.Basic.t -> t
