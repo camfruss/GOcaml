@@ -432,6 +432,33 @@ let step t move time =
     let t'' = remove_prisoners t' p in
     self_sacrifice t'' p; t''
 
+let star_locations t = 
+  let n1 = 
+    Float.floor ((float_of_int (bounds t) -. 1.0) /. 12.0) +. 2.0 
+    |> int_of_float in
+  let n2 = bounds t - (n1 + 1) in
+  let n3 = 
+    float_of_int (bounds t) /. 2.0 
+    |> Float.floor 
+    |> int_of_float 
+  in (n1, n2, n3)
+
+let handicap_c t h = 
+  let h_positions = ref [] in
+  let add lst = 
+    h_positions := !h_positions @ lst 
+  in
+  let n1, n2, n3 = star_locations t in
+  if bounds t >= 7 then 
+    (if h >= 2 then add [(n1, n2); (n2, n1)];
+     if h = 3 then add [(n2, n2)];
+     if h >= 4 then add [(n1, n1); (n2, n2)]);
+  if bounds t >= 9 then
+    (if h >= 5 && h mod 2 = 1 then add [(n3, n3)];
+     if h >= 6 then add [(n1, n3); (n2, n3)];
+     if h >= 8 then add [(n3, n1); (n3, n2)];);
+  !h_positions
+
 (**[undo_white_helper t] is the game at the start of white's last turn in [t] *)
 let undo_white_helper t =
   let (c, r, prev_pris) = List.hd t.players.p2.prisoners in 
@@ -561,151 +588,7 @@ let string_of_string_string_array arr =
 let string_of_board t =
   string_of_string_string_array (full_board t)
 
-(* Scoring implementation v1 *)
-
-let set_color (col,row) stone grid = 
-  grid.(col).(row) <- stone 
-
-let grid_dim grid = Array.length grid 
-
-(**[floodfill n b s] fills [board] with color [stone] of all other empty spaces 
-    that are reached by [(col,row)].
-    Requires: blank and stone cannot be of same color *)
-let rec floodfill grid (col,row) blank stone = 
-  let dim =  grid_dim grid in 
-  let valid_pos (c,r) =
-    c >= 0 && c < dim
-    &&
-    r >= 0 && r < dim
-  in 
-  if valid_pos (col,row) then  
-    let node_color = grid.(col).(row) in 
-    if node_color <> blank then ()
-    else begin 
-      set_color (col,row) stone grid;
-      floodfill grid (col - 1, row) blank stone;
-      floodfill grid (col + 1, row) blank stone;
-      floodfill grid (col, row - 1) blank stone;
-      floodfill grid (col, row + 1) blank stone;
-    end 
-
-(**[territory_finder g p c d] is true if [pos] is within [color]'s territory
-    or neutral territory, false otherwise. Checks in order of n e s w *)
-let rec territory_finder grid (col,row) color og_pos dir = 
-  let grid_dim = Array.length grid in 
-  let pos_color = grid.(col).(row) in 
-  match pos_color with 
-  | "W" -> if color = "W" then true 
-    else territory_finder grid og_pos color og_pos (dir + 1)
-  | "B" -> if color = "B" then true 
-    else territory_finder grid og_pos color og_pos (dir + 1) 
-  | "⋅" -> begin 
-      match dir with 
-      | 0 -> if col -1 >=0
-        then territory_finder grid (col - 1, row) color og_pos 0 
-        else territory_finder grid og_pos color og_pos 1 
-      | 1 -> if row +1 < grid_dim
-        then territory_finder grid (col, row + 1) color og_pos 1 
-        else territory_finder grid og_pos color og_pos 2 
-      | 2 -> if col +1 < grid_dim
-        then territory_finder grid (col + 1, row) color og_pos 2 
-        else territory_finder grid og_pos color og_pos 3 
-      | 3 -> if row -1 >=0
-        then territory_finder grid (col, row -1) color og_pos 3 
-        else false
-      | _ -> false 
-    end 
-  | _ ->  failwith "floodfill failed"
-
-(**[fill t g c f (col,r)] is a nxn matrix with [color]'s territory and 
-    neutral territory filled with [f]*)
-let rec fill grid c f (col,row) = 
-  let dim = Array.length grid in 
-  if row = dim then fill grid c f (col +1,0)
-  else if col = dim then grid 
-  else begin
-    let color = grid.(col).(row) in 
-    match color with 
-    | "⋅" -> begin
-        if territory_finder grid (col,row) c (col,row) 0 then 
-          (* let update_grid =  floodfill t grid (col,row) "⋅" f in  *)
-          let x = 
-            floodfill grid (col,row) "⋅" f;
-            (fill  grid c f (col,row + 1)) in 
-          x
-        else  fill  grid c f (col,row + 1)
-      end 
-    | _ -> fill  grid c f (col,row + 1)
-  end 
-
-(**[score_helper w_g b_g w_s b_s (c,r)] calculates the score of the board*)
-let rec score_helper w_grid b_grid w_score b_score (col,row)=
-  let max_dim = Array.length w_grid in 
-  if row = max_dim 
-  then score_helper w_grid b_grid w_score b_score (col+1,0)
-  else if col = max_dim then (b_score, w_score) 
-  else
-    let w_pos = w_grid.(col).(row) in 
-    let b_pos = b_grid.(col).(row) in 
-    match w_pos with 
-    | "w" -> if b_pos = "⋅" 
-      then score_helper w_grid b_grid (w_score +. 1.) b_score (col,row +1 )
-      else 
-        score_helper w_grid b_grid w_score b_score (col,row +1 )
-    | "⋅" -> if b_pos = "b" 
-      then score_helper w_grid b_grid w_score (b_score +. 1.) (col,row +1 )
-      else 
-        score_helper w_grid b_grid w_score b_score (col,row +1 )
-    | _ -> score_helper w_grid b_grid w_score b_score (col,row +1 )
-
-(**[create_grid t c f] is a board representation with [color]'s and netural 
-    territory filled with [filler] *)
-let create_grid t color filler= 
-  let grid = full_board t in 
-  fill grid color filler (0,0)
-
-let comparer w_grid b_grid grid (c,r) = 
-  let w_pos = w_grid.(c).(r) in 
-  let b_pos = b_grid.(c).(r) in 
-  match w_pos with 
-  | "w" -> if b_pos = "⋅" then grid.(c).(r) <- "w"
-  | "⋅" -> if b_pos = "b" then grid.(c).(r) <- "b"
-  | _ -> ()
-
-let rec m_t_helper  w_grid b_grid grid (c,r) = 
-  let dim = grid_dim w_grid in 
-  if r = dim then m_t_helper  w_grid b_grid grid (c +1,0)
-  else if c = dim then grid 
-  else 
-    let x = comparer  w_grid b_grid grid (c,r);
-      m_t_helper  w_grid b_grid grid (c,r+1) in 
-    x
-
-(**[mark_territories t] is a matrix representation of the territories with
-   "w"/"b" = white/black territory
-   "W"/"B" = White/Black stone
-   "⋅" = neutral territory *)
-let mark_territories t = 
-  let w_grid = create_grid t "W" "w" in 
-  let b_grid = create_grid t "B" "b" in
-  let grid = full_board t in 
-  m_t_helper  w_grid b_grid grid (0,0)
-
-let score t =
-  let num_prisoners p = 
-    let p1_list = p.prisoners in
-    float_of_int (List.length p1_list) 
-  in  
-  let w_grid = create_grid t "W" "w" in 
-  let b_grid = create_grid t "B" "b" in 
-  let territory_score = score_helper w_grid b_grid 0. 0. (0,0) in 
-  let b_score = (fst territory_score) +. num_prisoners t.players.p1 in 
-  let w_score = (snd territory_score) +. num_prisoners t.players.p2 
-                +. t.config.komi in 
-  (b_score, w_score)
-
-(* MARK: - Scoring  Implementation v2 *)
-
+(* MARK: - Scoring  Implementation *)
 type intersection = WhiteT | BlackT | Neutral | WhiteS | BlackS | Empty
 
 (** [init_grid t] is a nxn matrix corresponding to [t] with White stones marked 
@@ -793,3 +676,30 @@ let score t =
   let komi = t.config.komi 
   in (float_of_int (black + b_prisoners), 
       komi +. float_of_int (white + w_prisoners))
+
+let game_message t = 
+  let name1, name2 = names t in 
+  let time1, time2 = 
+    t.players.p1.game_time |> string_of_int, 
+    t.players.p2.game_time |> string_of_int in
+  let byo1, byo2 = 
+    t.players.p1.byoyomi |> string_of_int,
+    t.players.p2.byoyomi |> string_of_int in
+  let stones1, stones2 = 
+    List.length t.board.black |> string_of_int, 
+    List.length t.board.white |> string_of_int in
+  let pris1, pris2 = 
+    List.length t.players.p1.prisoners |> string_of_int, 
+    List.length t.players.p2.prisoners |> string_of_int in
+  let komi = t.config.komi in
+  let score1, score2 = score t in
+  let terr1, terr2 =   
+    (score1 -. (float_of_string pris1)) |> string_of_float,
+    (score2 -. (float_of_string pris2) -. komi) |> string_of_float 
+  in
+  (["Player"; "Name"; "Stone Color"; "Seconds"; "Stones"; "Byoyomi"; "Komi"; 
+    "Territory"; "Prisoners"; "Score"], 
+   ["Player 1"; name1; "Black"; time1; stones1; byo1; "0"; terr1; pris1; 
+    string_of_float score1], 
+   ["Player 2"; name2; "White"; time2; stones2; byo2; string_of_float komi; 
+    terr2; pris2; string_of_float score2])

@@ -70,6 +70,15 @@ val turn : t -> stone
     black stones and the second with white.  *)
 val names : t -> (string * string)
 
+(** [star_locations t] are the three possible locations for a star point on a Go 
+    board. Star points act as a reference for Go boards and mark where handicap 
+    stones, if any, are placed. *)
+val star_locations : t -> int * int * int
+
+(** [handicap_c t h] is the positions of [h] handicap stones on the board in 
+    [t]. *)
+val handicap_c : t -> int -> (int * int) list
+
 (** [handicap t lst] places the handicap stones specified in [lst] on the board. 
     It then becomes white's turn. *)
 val handicap : t -> (int * int) list -> t
@@ -90,6 +99,10 @@ val string_of_board : t -> string
     territory mark accordingly, as well as black and white stones. *)
 val fill_grid : t -> intersection array array
 
-(**[undo t ] reverts to the game at beginning of the previous
+(** [undo t] reverts to the game at beginning of the previous
     player's turn excluding time.  *)
 val undo : t -> t 
+
+(** [game_message t] describes all the relevant information about [t] 
+    corresponding to the stat name, player 1 value, and player 2 value. *)
+val game_message : t -> (string list * string list * string list)

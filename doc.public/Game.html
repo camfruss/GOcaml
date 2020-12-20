@@ -1,0 +1,264 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Authors.html">
+<link rel="next" href="Main.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Authors" rel="Chapter" href="Authors.html">
+<link title="Game" rel="Chapter" href="Game.html">
+<link title="Main" rel="Chapter" href="Main.html">
+<link title="Gui" rel="Chapter" href="Gui.html">
+<link title="Util" rel="Chapter" href="Util.html"><title>Game</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Authors.html" title="Authors">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Main.html" title="Main">Next</a>
+</div>
+<h1>Module <a href="type_Game.html">Game</a></h1>
+
+<pre><span id="MODULEGame"><span class="keyword">module</span> Game</span>: <code class="code">sig</code> <a href="Game.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p><code class="code">t</code> is the abstract type of values representing go games.</p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+
+
+<pre><code><span id="TYPEstone"><span class="keyword">type</span> <code class="type"></code>stone</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTstone.Black"><span class="constructor">Black</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTstone.White"><span class="constructor">White</span></span></code></td>
+
+</tr></table>
+
+<div class="info ">
+<div class="info-desc">
+<p><code class="code">stone</code> is the type representing the black or white stones</p>
+</div>
+</div>
+
+
+<pre><code><span id="TYPEintersection"><span class="keyword">type</span> <code class="type"></code>intersection</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTintersection.WhiteT"><span class="constructor">WhiteT</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTintersection.BlackT"><span class="constructor">BlackT</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTintersection.Neutral"><span class="constructor">Neutral</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTintersection.WhiteS"><span class="constructor">WhiteS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTintersection.BlackS"><span class="constructor">BlackS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTintersection.Empty"><span class="constructor">Empty</span></span></code></td>
+
+</tr></table>
+
+<div class="info ">
+<div class="info-desc">
+<p><code class="code">intersection</code> is the type representing how a single intersection may be 
+    viewed when scoring a Go game. 
+    Example: 
+      White stone and white territory correspond to <code class="code">WhiteS</code> and <code class="code">WhiteT</code>, 
+        respectively.</p>
+</div>
+</div>
+
+
+<pre><span id="EXCEPTIONKoException"><span class="keyword">exception</span> KoException</span></pre>
+<div class="info ">
+<div class="info-desc">
+<p><code class="code">KoException</code> is raised when the configuration of a Go board is repeated 
+    twice in a single game.</p>
+</div>
+</div>
+
+<pre><span id="EXCEPTIONSelfCaptureException"><span class="keyword">exception</span> SelfCaptureException</span></pre>
+<div class="info ">
+<div class="info-desc">
+<p><code class="code">SelfCaptureException</code> is raised when a player attempt to place a stone in a
+    position that is immediately captured.</p>
+</div>
+</div>
+
+<pre><span id="EXCEPTIONStoneAlreadyExistsException"><span class="keyword">exception</span> StoneAlreadyExistsException</span></pre>
+<div class="info ">
+<div class="info-desc">
+<p><code class="code">StoneAlreadyExists</code> is raised when a player attempts to place a 
+    stone on top of an existing stone.</p>
+</div>
+</div>
+
+<pre><span id="EXCEPTIONTimeExpiredException"><span class="keyword">exception</span> TimeExpiredException</span></pre>
+<div class="info ">
+<div class="info-desc">
+<p><code class="code">TimeExpiredException</code> is raised when a player has exhausted their entire 
+    game clock.</p>
+</div>
+</div>
+
+<pre><span id="VALfrom_json"><span class="keyword">val</span> from_json</span> : <code class="type">Yojson.Basic.t -> <a href="Game.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">from_json json</code> is the Go game that <code class="code">json</code> represents.
+    Requires: <code class="code">json</code> is a valid json Go representation.</p>
+</div>
+</div>
+
+<pre><span id="VALto_json"><span class="keyword">val</span> to_json</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">to_json go str</code> writes the contents of <code class="code">go</code> into a valid json.
+    Does not overwrite pre-existing files..</p>
+</div>
+</div>
+
+<pre><span id="VALin_bounds"><span class="keyword">val</span> in_bounds</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> int * int -> bool</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">in_bounds t (c,r)</code> is whether the stone at column <code class="code">c</code> and row <code class="code">r</code> is 
+    within the bounds of the board.</p>
+</div>
+</div>
+
+<pre><span id="VALbounds"><span class="keyword">val</span> bounds</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> int</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">bounds t</code> is the nxn size of the board in game <code class="code">t</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALis_empty"><span class="keyword">val</span> is_empty</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> int * int -> bool</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">is_empty t pos</code> is whether there is no stone current at position <code class="code">pos</code>
+    in the <code class="code">t</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALscore"><span class="keyword">val</span> score</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> float * float</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">score t</code> is the current score of the game using the territory scoring. The
+    first value in the tuple represents the score of the black stones and the 
+    second value, the white stones.</p>
+</div>
+</div>
+
+<pre><span id="VALliberties"><span class="keyword">val</span> liberties</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> int * int -> int</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">liberties t pos</code> is the number of liberties in the group at input <code class="code">pos</code>. 
+    Requires: a stone is currently placed at <code class="code">pos</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALko"><span class="keyword">val</span> ko</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> int * int -> bool</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">ko t str</code> is whether an input <code class="code">str</code> would violate ko.</p>
+</div>
+</div>
+
+<pre><span id="VALstones"><span class="keyword">val</span> stones</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> <a href="Game.html#TYPEstone">stone</a> -> (int * int) list</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">stones t s</code> is the col and row of every stone on the board of type 
+    <code class="code">stone</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALturn"><span class="keyword">val</span> turn</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> <a href="Game.html#TYPEstone">stone</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">turn t</code> is the stone of the player whose turn it currently is.</p>
+</div>
+</div>
+
+<pre><span id="VALnames"><span class="keyword">val</span> names</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> string * string</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">names t</code> is the pair of player names, with the first value playing with 
+    black stones and the second with white.</p>
+</div>
+</div>
+
+<pre><span id="VALhandicap"><span class="keyword">val</span> handicap</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> (int * int) list -> <a href="Game.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">handicap t lst</code> places the handicap stones specified in <code class="code">lst</code> on the board. 
+    It then becomes white's turn.</p>
+</div>
+</div>
+
+<pre><span id="VALlast_stone"><span class="keyword">val</span> last_stone</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> int * int</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">last_stone t</code> is the column and row, respecively, of the last stone placed 
+    on the board in <code class="code">t</code>. 
+    Returns: (-1, -1) if there are no stones on the board.</p>
+</div>
+</div>
+
+<pre><span id="VALstep"><span class="keyword">val</span> step</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> (int * int) option -> int -> <a href="Game.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">step t move time</code> is the new game after the current player places a stone 
+    on <code class="code">move</code> and spends <code class="code">time</code> seconds doing so.</p>
+</div>
+</div>
+
+<pre><span id="VALstring_of_board"><span class="keyword">val</span> string_of_board</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> string</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">string_of_board t</code> is the string representation of a board.</p>
+</div>
+</div>
+
+<pre><span id="VALfill_grid"><span class="keyword">val</span> fill_grid</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> <a href="Game.html#TYPEintersection">intersection</a> array array</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">fill_grid t</code> is the board in <code class="code">t</code> with black, neutral, and blwhiteack 
+    territory mark accordingly, as well as black and white stones.</p>
+</div>
+</div>
+
+<pre><span id="VALundo"><span class="keyword">val</span> undo</span> : <code class="type"><a href="Game.html#TYPEt">t</a> -> <a href="Game.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">undo t </code> reverts to the game at beginning of the previous
+    player's turn excluding time.</p>
+</div>
+</div>
+</body></html>

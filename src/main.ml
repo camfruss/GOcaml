@@ -35,8 +35,7 @@ let forfeit_message game =
   | White -> "Player 2 has forfeit. \nPlayer 1 has won the game!" 
 
 let score_str (a,b) = 
-  "player 1: " ^ string_of_float(a) ^ "\nplayer 2: " 
-  ^ string_of_float(b)
+  "player 1: " ^ string_of_float(a) ^ "\nplayer 2: " ^ string_of_float(b)
 
 (** [play game t] manages each turn, parsing input, and displaying helpful 
     information to the terminal. [t] is the UNIX time this move started. *)

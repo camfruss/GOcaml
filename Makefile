@@ -1,12 +1,12 @@
-MODULES=$(addprefix src/, authors command main game gui util)
+MODULES=$(addprefix src/, authors game command main gui util)
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 MAIN=main.byte
 TEST=test.byte
 GUI=gui.byte
-TERMINAL=y
-
+PKGS=ounit2,str,yojson,graphics,ANSITerminal
+TERMINAL=n
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
 build:
@@ -14,7 +14,12 @@ build:
 
 clean:
 	ocamlbuild -clean
-	rm -rf gocaml.zip
+	rm -rf gocaml.zip ./docs.public
+
+docs:
+	mkdir -p doc.public
+	ocamlfind ocamldoc -I _build -package $(PKGS) \
+		-html -stars -d doc.public $(MLIS)
 
 gocaml:
 	if [ "$(TERMINAL)" = "y" ]; \
