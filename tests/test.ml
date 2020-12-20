@@ -22,6 +22,9 @@ open OUnit2
    were just testing through black box through TTD or afterwards. [from_json] 
    and [to_json] were tested indirectly through using their outputs. 
 
+   Util TODO
+
+   GUI TODO
 *)
 
 (** [cmp_set_like_lists lst1 lst2] compares two lists to see whether
@@ -49,6 +52,11 @@ let cmp_values name v1 v2 =
 let cmp_flt name v1 v2 = 
   name >:: (fun _ -> assert_equal v1 v2 ~printer: string_of_float)
 
+(** [test_raises2 n f i1 e] is on OUnit Test to determine whether 
+    [func i1] raises [error].  *)
+let test_raises name func input1 error = 
+  name >:: (fun _ -> assert_raises error (fun () -> func input1))
+
 (** [test_raises2 n f i1 i2 e] is on OUnit Test to determine whether 
     [func i1 i2] raises [error].  *)
 let test_raises2 name func input1 input2 error = 
@@ -66,15 +74,16 @@ let empty_5 = load_game "games/5.json"
 let empty_7 = load_game "games/7.json"
 let empty_11 = load_game "games/11.json"
 let empty_19 = load_game "games/19.json"
-(** general mid-way game *)
+(* General mid-way game *)
 let game_one = load_game "games/game_one.json"
-(** used to test liberties  *)
+(* Used to test liberties  *)
 let corner = load_game "games/corner.json"
-(** used to test scoring and capturing stones *)
+(* Used to test scoring and capturing stones *)
 let territories = load_game "games/territories.json"
 let error_test = load_game "games/error_test.json"
-(**used to test Ko violations *)
+(* Used to test Ko violations *)
 let ko_game = load_game "games/ko_game.json"
+let prisoner_game = load_game "games/prisoner_test.json"
 
 let command_tests = [
   (* Converting string location to integer tuple *)
@@ -101,6 +110,7 @@ let command_tests = [
     GoOutOfBounds;
   test_raises2 "GoOutOfBounds Exception" parse empty_5 "play A20" 
     GoOutOfBounds;
+  test_raises "Deformed 2" istone_pos "A" Deformed;
 ]
 
 let liberty_tests = [
@@ -192,10 +202,15 @@ let game_tests = [
     SelfCaptureException;
   test_raises2 "StoneAlreadyExists" (step error_test) (Some (0, 1)) 0 
     StoneAlreadyExistsException;
+  test_raises2 "KoExceptoin" (step ko_game) (Some (5, 3)) 0 KoException;
 
-  (* UNDO *)
+  (* Undo test *)
+  cmp_values "undo first play" empty_5 (undo (step empty_5 (Some (0, 0)) 0));
+  cmp_values "undo ko" ko_game (undo (step ko_game (Some (0, 0)) 0));
 
-  (* SCORE *)
+  (* Remove prisoners *)
+  cmp_flt "capture and remove prisoner" 
+    (step prisoner_game (Some (7, 3)) 0 |> score |> snd) 8.5;
 ]
 
 let suite =

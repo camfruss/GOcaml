@@ -581,6 +581,7 @@ and eval_scored_board event game t0 =
     | 'i' -> set_info game; user_input Info ~game:game ~time:t0
     | 's' -> ignore (set_game game 0); user_input Board ~game:game ~time:t0
     | _ -> user_input ScoredBoard ~game:game ~time:t0
+  else user_input ScoredBoard ~game:game ~time:t0
 
 (** [eval_info e g t] handles user input when the display is [Info]. *)
 and eval_info event game t0 = 
