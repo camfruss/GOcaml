@@ -325,11 +325,18 @@ let remove_stones t s =
   in
   let rec remove_stone t = function
     | (c, r) :: tail -> begin
-        let board' = match turn t with
-          | White -> {t.board with white = remove_cr t (c,r)}
-          | Black -> {t.board with black = remove_cr t (c,r)}
+        let p1', p2', board' = match turn t with
+          | White -> 
+            {t.players.p1 with prisoners = (c, r, n_stones t) :: t.players.p1.prisoners},
+            t.players.p2,
+            {t.board with white = remove_cr t (c,r)}
+          | Black -> 
+            t.players.p1,
+            {t.players.p2 with prisoners = (c, r, n_stones t) :: t.players.p2.prisoners},
+            {t.board with black = remove_cr t (c,r)}
         in
-        let t' = {t with board = board'} 
+        let players' = {p1 = p1'; p2 = p2'} in
+        let t' = {t with board = board'; players = players'} 
         in remove_stone t' tail
       end
     | [] -> t
@@ -434,20 +441,21 @@ let new_config t =
   let turn' = if (turn t) = Black then 'w' else 'b' in
   {t.config with turn = turn'}
 
-(**[game end t] checks to see if the last prisoner in the players turn was due 
-   to a 'pass' command. This is used in determining the GameEndException *)
+(** [game_end t] checks to see if the last prisoner in the players turn was due 
+    to a 'pass' command. This is used in determining the GameEndException *)
 let game_end t = 
   let num_stones  = n_stones t in 
-  let p = if (turn t) = Black then lst_head_h t.players.p1.prisoners else
-      lst_head_h t.players.p2.prisoners in
+  let p = 
+    if (turn t) = Black then lst_head_h t.players.p1.prisoners 
+    else lst_head_h t.players.p2.prisoners 
+  in
   let p_curr_stone = match p with 
-    | (_,_,l) -> l
+    | (_ ,_ , l) -> l
   in 
   let p_pos = match p with 
-    | (x,y,_) -> (x,y)
+    | (x, y, _) -> (x, y)
   in 
-  (-1,-1) = p_pos && (num_stones = p_curr_stone) 
-
+  num_stones = p_curr_stone && (-1, -1) = p_pos
 
 let step t move time = 
   let board' = match move with 

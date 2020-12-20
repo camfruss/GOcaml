@@ -493,7 +493,7 @@ and eval_board event game t0 =
       let game' = step game None t0 in
       user_input Board ~game:game'
     | 's' -> set_score game; user_input ScoredBoard ~game:game ~time:t0
-    | 'u' -> user_input Board ~game:(undo game) ~time:t0
+    | 'u' -> user_input Board ~game:(set_game (undo game) 0) ~time:t0
     | _ -> user_input Board ~game:game ~time:t0  
   else 
     eval_board_click event game t0
