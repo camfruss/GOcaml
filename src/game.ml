@@ -398,6 +398,27 @@ let new_players t time move =
   | None, Black | Some _, White -> {t.players with p2 = pn}
   | None, White | Some _, Black -> {t.players with p1 = pn}
 
+(** [lst_head_h lst] returns the head of a list if it exists. Otherwise it 
+    returns a tuple that will not match with any player move.
+    This method is used to get the head of the prisoners list (accounts for the
+    empty list case) *)
+let lst_head_h lst = 
+  match lst with 
+  | [] -> (-1, -1, -1)
+  | h :: t -> h
+
+let ko t (c,r) = 
+  let num_stones  = n_stones t in 
+  let p = if (turn t) = Black then lst_head_h t.players.p2.prisoners else
+      lst_head_h t.players.p1.prisoners in
+  let p_curr_stone = match p with 
+    | (_,_,l) -> l
+  in 
+  let p_pos = match p with 
+    | (x,y,_) -> (x,y)
+  in 
+  (c,r) = p_pos && (num_stones = p_curr_stone) 
+
 (** [new_board t m] is the updated board for [t] after move [m]. *)
 let new_board t (c,r) = 
   if not (is_empty t (c,r)) then raise StoneAlreadyExistsException
