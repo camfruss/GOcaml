@@ -55,6 +55,7 @@ type display =
   | Board 
   | ScoredBoard 
   | Info 
+  | GameOver
 
 type board_dimensions = {
   (** [board_size] is the nxn dimension of the board. *)
@@ -258,6 +259,18 @@ let show_error error =
   moveto (2 * !b_dims.spacing) 15;
   draw_string (message ^ "This is an illegal move.")
 
+(** [show_winner g] displays the winner of game [g]. *)
+let show_winner game =
+  let color, winner = match score game with
+    | x, y when x > y -> black, fst (names game) ^ " has won!"
+    | x, y when x < y -> white, snd (names game) ^ " has won!"
+    | x, y -> black, "The game is a draw"
+  in
+  font_size 48; 
+  set_color color;
+  moveto 150 150;
+  draw_string winner
+
 (** [setup_dims game] determines the optimal window dimensions and line spacing 
     for the graphical user interface given game [game]. 
     Requires: this function must be called before all other game or window 
@@ -451,6 +464,7 @@ let rec user_input ?game:(game = default_game) ?time:(time = time ())
       | Board -> eval_board event game time
       | ScoredBoard -> eval_scored_board event game time
       | Info -> eval_info event game time
+      | GameOver -> user_input GameOver
 
 (** [eval_main event] updates the window based on event [event] when on the 
     display [Main]. *)
@@ -548,7 +562,8 @@ and eval_board event game t0 =
           let game' = step game None t0 in
           user_input Board ~game:game'
         with 
-        | GameEndException -> set_main (); user_input Main (** TODO *)
+        | GameEndException -> 
+          set_info game; show_winner game; user_input GameOver
       end
     | 's' -> set_score game; user_input ScoredBoard ~game:game ~time:t0
     | 'u' -> user_input Board ~game:(set_game (undo game) 0) ~time:t0
@@ -595,7 +610,7 @@ and eval_info event game t0 =
     | 's' -> 
       let rand_file = (Printf.sprintf "./games/%s.json" (random_string 10)) in
       to_json game rand_file; exit 0
-    | _ -> user_input Info ~game:game ~time:t0
+    | _ -> user_input Info ~game:game ~time:t0  
 
 let main () =
   open_graph (Printf.sprintf " %dx%d" window_size window_size);
