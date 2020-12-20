@@ -84,6 +84,8 @@ let error_test = load_game "games/error_test.json"
 (* Used to test Ko violations *)
 let ko_game = load_game "games/ko_game.json"
 let prisoner_game = load_game "games/prisoner_test.json"
+(* Used to test GameEndException*)
+let game_end = step game_one None 0
 
 let command_tests = [
   (* Converting string location to integer tuple *)
@@ -203,6 +205,9 @@ let game_tests = [
   test_raises2 "StoneAlreadyExists" (step error_test) (Some (0, 1)) 0 
     StoneAlreadyExistsException;
   test_raises2 "KoExceptoin" (step ko_game) (Some (5, 3)) 0 KoException;
+
+  (* Two passes to end game *)
+  test_raises2 "GameEndException" (step game_end) None 0 GameEndException;
 
   (* Undo test *)
   cmp_values "undo first play" empty_5 (undo (step empty_5 (Some (0, 0)) 0));
