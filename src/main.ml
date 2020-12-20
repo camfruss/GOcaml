@@ -80,21 +80,25 @@ let rec play game t0 =
     play game t0
   | KoException -> 
     ANSITerminal.(
-      print_string [red]"You cannot place a stone here. The move causes a Ko violation. \n");
+      print_string [red]
+        "You cannot place a stone here. The move causes a Ko violation. \n");
     play game t0
   | SelfCaptureException -> 
     ANSITerminal.(
-      print_string [red]"You cannot play there. That would cause a Self Capture \n");
+      print_string [red]
+        "You cannot play there. That would cause a Self Capture \n");
     play game t0
   | GameEndException -> 
     let p1_score = fst (score game) in 
     let p2_score = snd (score game) in 
-    let winner = if p1_score > p2_score then fst (names game) else snd (names game) in
+    let winner = if p1_score > p2_score then fst (names game) 
+      else snd (names game) in
     ANSITerminal.(
-      print_string [blue]("Two playes have passed, the game is now over!\nThe winner is " 
-                          ^ winner ^ "\nPlayer1: " ^ string_of_float(p1_score) 
-                          ^ "\nPlayer2: " 
-                          ^ string_of_float(p2_score)^"\n"));
+      print_string [blue]
+        ("Two playes have passed, the game is now over!\nThe winner is " 
+         ^ winner ^ "\nPlayer1: " ^ string_of_float(p1_score) 
+         ^ "\nPlayer2: " 
+         ^ string_of_float(p2_score)^"\n"));
     exit 0
 
 (** [main] prompts for the game to play, then starts it. *)
