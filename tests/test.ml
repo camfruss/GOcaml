@@ -2,6 +2,28 @@ open Command
 open Game
 open OUnit2
 
+(**Test plan:
+   Overall, the majority of our testing is done through manually playing the 
+   game, via terminal and GUI. To do this we created several game files. While 
+   the empty boards are for both testing and general play, the others were
+   created to test certain features (defined below). We manually tested 
+   all the commands from the Command module and saw how they interacted with 
+   the Main module. However the actual parsing was tested through OUnit. 
+   [step] and [undo] of the Game module were also tested manually through 
+   gameplay. Many of our tests were done manually since all of the exceptions 
+   in the Game would need a series of stones to be placed to be raised. This is 
+   difficult to write as a single line of code for OUnit to test.
+
+   In OUnit, we tested many functions in the Game module. This was done
+   through both glass box and black box testing. Using Go rules, black box tests
+   were written for [liberties] which could be determined from looking at an 
+   image of a board. Then after implementation, further glass box tests were 
+   added. This was done similarly for [score]. Other methods such as [in_bounds] 
+   were just testing through black box through TTD or afterwards. [from_json] 
+   and [to_json] were tested indirectly through using their outputs. 
+
+*)
+
 (** [cmp_set_like_lists lst1 lst2] compares two lists to see whether
     they are equivalent set-like lists.  That means checking two things.
     First, they must both be {i set-like}, meaning that they do not
@@ -44,10 +66,15 @@ let empty_5 = load_game "games/5.json"
 let empty_7 = load_game "games/7.json"
 let empty_11 = load_game "games/11.json"
 let empty_19 = load_game "games/19.json"
+(** general mid-way game *)
 let game_one = load_game "games/game_one.json"
+(** used to test liberties  *)
 let corner = load_game "games/corner.json"
+(** used to test scoring and capturing stones *)
 let territories = load_game "games/territories.json"
 let error_test = load_game "games/error_test.json"
+(**used to test Ko violations *)
+let ko_game = load_game "games/ko_game.json"
 
 let command_tests = [
   (* Converting string location to integer tuple *)
@@ -132,11 +159,14 @@ let game_tests = [
   cmp_values "corner A1 is not empty" (is_empty corner (0,0)) false;
 
   (* Scoring Tests *)
+  (* empty boards, differnt komi tests *)
   cmp_values "corner score" (score corner) (0.0,5.5);
   cmp_values "empty_19 score" (score empty_19) (0.0, 6.5);
   (** has territories but no prisoners, komi zero *)
   cmp_flt "territories score" (fst (15., 17.)) (fst (score territories));
   cmp_flt "territories score" (snd (15., 17.)) (snd (score territories));
+  (** territories b:1, w:0, prisoners b:1, w:0, komi b:0, w:5.5 *)
+  cmp_values "ko_game score" (2.0, 5.5) (score ko_game);
 
   (* Last stone tests *)
   cmp_values "empty board" (-1,-1) (last_stone empty_5); 

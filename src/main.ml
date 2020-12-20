@@ -82,10 +82,14 @@ let rec play game t0 =
     print ANSITerminal.red "A stone already exists in that location. \n";
     play game t0
   | KoException -> 
-    print ANSITerminal.red "You cannot place a stone here. The move causes a Ko violation. \n";
+    ANSITerminal.(
+      print_string [red]
+        "You cannot place a stone here. The move causes a Ko violation. \n");
     play game t0
   | SelfCaptureException -> 
-    print ANSITerminal.red "You cannot play there. That would cause a Self Capture \n";
+    ANSITerminal.(
+      print_string [red]
+        "You cannot play there. That would cause a Self Capture \n");
     play game t0
   | GameEndException -> 
     let p1_score = fst (score game) in 
