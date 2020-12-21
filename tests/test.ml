@@ -2,29 +2,40 @@ open Command
 open Game
 open OUnit2
 
-(**Test plan:
-   Overall, the majority of our testing is done through manually playing the 
-   game, via terminal and GUI. To do this we created several game files. While 
-   the empty boards are for both testing and general play, the others were
-   created to test certain features (defined below). We manually tested 
-   all the commands from the Command module and saw how they interacted with 
-   the Main module. However the actual parsing was tested through OUnit. 
-   [step] and [undo] of the Game module were also tested manually through 
-   gameplay. Many of our tests were done manually since all of the exceptions 
-   in the Game would need a series of stones to be placed to be raised. This is 
-   difficult to write as a single line of code for OUnit to test.
+(** Test plan:
+    Overall, the majority of our testing is done through manually playing the 
+    game, via terminal and GUI. To do this we created several game files. While 
+    the empty boards are for both testing and general play, the others were
+    created to test certain features (defined below). We manually tested 
+    all the commands from the Command module and saw how they interacted with 
+    the Main module. However the actual parsing was tested through OUnit. 
+    [step] and [undo] of the Game module were also tested manually through 
+    gameplay. Many of our tests were done manually since all of the exceptions 
+    in the Game would need a series of stones to be placed to be raised. This is
+    difficult to write as a single line of code for OUnit to test.
 
-   In OUnit, we tested many functions in the Game module. This was done
-   through both glass box and black box testing. Using Go rules, black box tests
-   were written for [liberties] which could be determined from looking at an 
-   image of a board. Then after implementation, further glass box tests were 
-   added. This was done similarly for [score]. Other methods such as [in_bounds] 
-   were just testing through black box through TTD or afterwards. [from_json] 
-   and [to_json] were tested indirectly through using their outputs. 
+    In OUnit, we tested many functions in the Game module. This was done
+    through both glass box and black box testing. Using Go rules, black box 
+    tests were written for [liberties] which could be determined from looking at
+    an image of a board. Then after implementation, further glass box tests were
+    added. This was done similarly for [score]. Other methods such as 
+    [in_bounds] were just testing through black box through TTD or afterwards. 
+    [from_json] and [to_json] were tested indirectly through using their 
+    outputs. As mentioned above, [undo] is hard to easily test, but we still 
+    achieve 83% coverage in [game.ml] despite not testing [undo] heavily.
 
-   Util TODO
+    The nature of graphical user interfaces prevents an easy implementation of 
+    automated testing. Thus, all testing we done by launching the GUI annd 
+    testing a variety of inputs on each screen (i.e. key presses and mouse 
+    clicks). 
 
-   GUI TODO
+    All testing of [Util] is done through the below tests. While the coverage in
+    [make bisect] indicates a low coverage percentage, many of the functions are
+    only used in [gui.ml] (but these are still being tested manually).
+
+    Through our robust testing suite, and running through a large number of 
+    games on the GUI and terminal, especially after implementing a new feature,
+    we believe our testing approach ensures the correctness of our system. 
 *)
 
 (** [cmp_set_like_lists lst1 lst2] compares two lists to see whether
