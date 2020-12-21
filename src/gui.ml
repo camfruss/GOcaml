@@ -589,7 +589,9 @@ and eval_board_click event game t0 =
     ignore (set_game game' 0);
     user_input Board ~game:game' ~time:t1
   with 
-  | err -> show_error err; user_input Board ~game:game ~time:t0 
+  | err -> 
+    ignore (set_game game 0); show_error err; 
+    user_input Board ~game:game ~time:t0 
 
 (** [eval_scored_board e g t] handles user input when the board is currently 
     scored. *)
