@@ -11,19 +11,17 @@ let window_size = 800
 let background_color = rgb 235 195 120
 
 let info_message = [
-  "Welcome to GOcaml! This implemented purely in OCaml";
-  "the best programming language. We recommend reading";
-  "the instructions on how to play first, but feel free";
-  "to play around first. Here is a brief overview of";
-  "useful commands:"; "";
-  " - To pass, press 'p'";
-  " - To score a board, press 's'";
-  " - To undo the last move, press 'u'";
-  " - To set information about the game, press 'i'";
-  " - To quit the GUI, press 'q'";
-  " - To save your game, press 'i' then 's'";
-  " - When setting up the game, to navigate to the";
-  "   previous page, press 'b'"; "";
+  "Welcome to GOcaml! This is implemented purely in OCaml,";
+  "the best functional programming language! Here are some";
+  "helpful shortcuts and commands to get started:"; "";
+  " - 'P': to pass";
+  " - 'S': to score the board";
+  " - 'U': to undo the last move";
+  " - 'I': to see information about the game";
+  " - 'Q': to quit the GUI";
+  " - 'I' then 'S': to save your current game";
+  " - 'B': to navigation to a previous page when setting up";
+  "   the game"; "";
   "Have fun playing GOcaml!";
   "- Banpreet, Cameron, and Vicki";
 ]
