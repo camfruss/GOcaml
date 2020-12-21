@@ -386,8 +386,6 @@ let self_sacrifice t pos =
   then raise SelfCaptureException 
   else ()
 
-(** TODO: look over docu *)
-
 let handicap t lst = 
   let n, placements = List.fold_left (fun (n, acc) (c,r) -> 
       (n + 1, (c, r, n) :: acc)) (1, []) lst in
